@@ -261,7 +261,7 @@ export async function processOutboxItem(outboxId: string) {
   }
 
   webpush.setVapidDetails(
-    'mailto:contato@sepassoueponto.lovable.app',
+    'https://aplicacoes-sepassoueponto.4nki4e.easypanel.host',
     publicKey,
     privateKey
   );

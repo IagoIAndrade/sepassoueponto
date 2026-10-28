@@ -6,4 +6,4 @@ Disallow: /api
 Disallow: /profile
 Disallow: /notifications
 
-Sitemap: https://se-passou-e-ponto.lovable.app/sitemap.xml
+Sitemap: https://aplicacoes-sepassoueponto.4nki4e.easypanel.host/sitemap.xml

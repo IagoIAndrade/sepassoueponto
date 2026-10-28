@@ -114,12 +114,12 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Participe das peladas do SE PASSOU, É PONTO. Listas abertas toda semana para Terça, Quarta, Quinta e Sábado." },
       { property: "og:title", content: "SE PASSOU, É PONTO — Vôlei toda semana" },
       { property: "og:description", content: "Entre na lista, confira os times e acompanhe o rateio da pelada mais organizada." },
-      { property: "og:url", content: "https://se-passou-e-ponto.lovable.app" },
+      { property: "og:url", content: "https://aplicacoes-sepassoueponto.4nki4e.easypanel.host" },
       { name: "twitter:title", content: "SE PASSOU, E PONTO — Vôlei toda semana" },
       { name: "twitter:description", content: "Entre na lista, confira os times e acompanhe o rateio da pelada mais organizada." },
     ],
     links: [
-      { rel: "canonical", href: "https://se-passou-e-ponto.lovable.app" }
+      { rel: "canonical", href: "https://aplicacoes-sepassoueponto.4nki4e.easypanel.host" }
     ],
     styles: [
       {
