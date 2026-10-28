@@ -354,6 +354,8 @@ export const join_self = createServerFn({ method: "POST" })
     
     const row = Array.isArray(rows) ? rows[0] : rows;
     console.log("[JOIN_SELF] Confirmação real:", row);
+    const { notifyMainListFull } = await import("./n8n-webhooks.server");
+    await notifyMainListFull(data.event_id);
     return { ok: true, registration: row };
   });
 

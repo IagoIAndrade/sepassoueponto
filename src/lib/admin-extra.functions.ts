@@ -263,6 +263,8 @@ export const admin_auto_enroll_organizers = createServerFn({ method: "POST" })
     if (!result) return { ok: false, message: "Erro ao processar resultado da sincronização" };
 
     console.log(`[AUTO ORGANIZERS] Finalizado. Detalhes:`, JSON.stringify(result.details));
+    const { notifyMainListFull } = await import("./n8n-webhooks.server");
+    await notifyMainListFull(eventId);
 
     return { 
       ok: true, 
@@ -289,8 +291,10 @@ export const admin_move_registration = createServerFn({ method: "POST" })
       p_new_position: data.new_position,
       p_admin_user_id: context.userId
     });
-    
+
     if (error) throw new Error(error.message);
+    const { notifyMainListFullForRegistration } = await import("./n8n-webhooks.server");
+    await notifyMainListFullForRegistration(data.registration_id);
     return { ok: true };
   });
 

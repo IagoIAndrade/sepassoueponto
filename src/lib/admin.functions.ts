@@ -763,6 +763,10 @@ export const admin_add = createServerFn({ method: "POST" })
       }
       
       console.log("[ADMIN ADD] rpc success", rows);
+      if (data.list_type === "main") {
+        const { notifyMainListFull } = await import("./n8n-webhooks.server");
+        await notifyMainListFull(data.event_id);
+      }
       return { row: Array.isArray(rows) ? rows[0] : rows };
     } catch (e: any) {
       console.error("[ADMIN ADD] Exception:", e);
@@ -777,7 +781,12 @@ export const admin_remove = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const uid = await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    
+    const { data: removedReg } = await supabaseAdmin
+      .from("registrations")
+      .select("event_id")
+      .eq("id", data.registration_id)
+      .maybeSingle();
+
     console.log("[ADMIN REMOVE] Executing removal via RPC admin_remove_registration_v2:", {
       registration_id: data.registration_id,
       admin_id: uid
@@ -793,7 +802,10 @@ export const admin_remove = createServerFn({ method: "POST" })
       console.error("[ADMIN REMOVE] RPC Error:", rpcError);
       throw new Error(rpcError.message || "Erro ao processar remoção no banco de dados.");
     }
-    
+
+    const { notifyMainListFull } = await import("./n8n-webhooks.server");
+    await notifyMainListFull(removedReg?.event_id);
+
     return { ok: true, result: res };
   });
 
@@ -815,6 +827,9 @@ export const admin_move = createServerFn({ method: "POST" })
       p_admin_user_id: uid,
     });
     if (error) throw new Error(error.message);
+    // Mover para a espera também altera a lista principal (o reserva pode subir).
+    const { notifyMainListFullForRegistration } = await import("./n8n-webhooks.server");
+    await notifyMainListFullForRegistration(data.registration_id);
     return { ok: true };
   });
 
@@ -958,6 +973,8 @@ export const admin_trigger_auto_enroll = createServerFn({ method: "POST" })
       p_event_id: data.event_id
     });
     if (error) throw new Error(error.message);
+    const { notifyMainListFull } = await import("./n8n-webhooks.server");
+    await notifyMainListFull(data.event_id);
     return res as any;
   });
 // --- end of organizers functions ---

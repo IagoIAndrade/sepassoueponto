@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { readSessionCookie } from "./player-session.server";
+import { notifyLateLeave, notifyMainListFull } from "./n8n-webhooks.server";
 import { classifyRegistrations } from "./registration-classification";
 import { positionLabel } from "./skills";
 
@@ -365,6 +366,7 @@ export const add_guest = createServerFn({ method: "POST" })
     }
 
     const row = Array.isArray(res) ? res[0] : res;
+    await notifyMainListFull(data.event_id);
     return { guest: row || null };
   });
 
@@ -373,6 +375,12 @@ export const remove_guest = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const pid = await getPlayerIdFromSession();
     if (!pid) throw new Error("not_authenticated");
+
+    const { data: guestReg } = await supabaseAdmin
+      .from("registrations")
+      .select("event_id")
+      .eq("id", data.guest_id)
+      .maybeSingle();
 
     const { error } = await (supabaseAdmin as any).rpc(
       "internal_leave_registration_v3",
@@ -384,6 +392,7 @@ export const remove_guest = createServerFn({ method: "POST" })
     );
 
     if (error) throw new Error(error.message);
+    await notifyMainListFull(guestReg?.event_id);
     return { success: true };
   });
 
@@ -464,14 +473,16 @@ export const leave_registration = createServerFn({ method: "POST" })
     // Block withdrawal if event is not open
     const { data: regInfo } = await supabaseAdmin
       .from('registrations')
-      .select('event_id, event:volleyball_events(status)')
+      .select('event_id, player_id, event:volleyball_events(status)')
       .eq('id', data.registration_id)
       .single();
-    
+
     if (regInfo && (regInfo.event as any)?.status !== 'open') {
       throw new Error("A lista não está aberta ou já foi encerrada. Ações bloqueadas.");
     }
 
+    // Margem para diferença de relógio entre servidor e banco ao localizar o incidente.
+    const leaveStartedAt = new Date(Date.now() - 60_000).toISOString();
     const { data: leaveData, error } = await (supabaseAdmin as any).rpc(
       "internal_leave_registration_v3",
       {
@@ -495,7 +506,18 @@ export const leave_registration = createServerFn({ method: "POST" })
     }
     
     if (result?.status === "already_cancelled") return { status: "already_cancelled" as const };
-    if (result?.status === "success" || result?.ok === true) return { status: "success" as const };
+    if (result?.status === "success" || result?.ok === true) {
+      if (data.confirm_late_leave && regInfo) {
+        await notifyLateLeave({
+          eventId: regInfo.event_id,
+          playerId: regInfo.player_id,
+          since: leaveStartedAt,
+        });
+      }
+      // Se a lista estava cheia e o reserva subiu, envia a lista atualizada.
+      if (regInfo) await notifyMainListFull(regInfo.event_id);
+      return { status: "success" as const };
+    }
 
     throw new Error(result?.message || "Erro desconhecido ao processar saída");
   });

@@ -1,0 +1,250 @@
+{
+  "name": "Se Passou é Ponto - Lista completa",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sepassoueponto-lista-completa",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "93d31264-90ef-4b2b-b8ea-7b694523e032",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "cf5ba7ba-b5e8-4f2c-90ae-c6cb11e53a29"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "49b05e1f-81b5-4165-aeeb-1548dd213465",
+              "name": "webhook_secret",
+              "value": "COLE_AQUI_O_N8N_WEBHOOK_SECRET_DO_.ENV",
+              "type": "string"
+            },
+            {
+              "id": "d63781e0-1f8a-48e4-85b4-89401150766b",
+              "name": "evolution_url",
+              "value": "https://SUA-EVOLUTION-API.com",
+              "type": "string"
+            },
+            {
+              "id": "c2a23a96-3b6b-410e-92c7-131cab50700b",
+              "name": "evolution_instance",
+              "value": "NOME_DA_INSTANCIA",
+              "type": "string"
+            },
+            {
+              "id": "625f0a50-8cda-455b-a696-c759f9562539",
+              "name": "evolution_apikey",
+              "value": "SUA_API_KEY",
+              "type": "string"
+            },
+            {
+              "id": "2b6c91a4-cc43-4865-b856-aabb2944859d",
+              "name": "grupo_jid",
+              "value": "120363000000000000@g.us",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "24a43388-dd04-449d-83d4-41ec44e2c658",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "135d25b0-c412-4661-9dbe-575b809bbcb3",
+              "leftValue": "={{ $('Webhook').item.json.headers['x-webhook-secret'] }}",
+              "rightValue": "={{ $json.webhook_secret }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4e563e57-22ff-465a-af33-1f1b29f03be1",
+      "name": "Segredo válido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: true } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "d4c5f6bb-7bbf-4f85-b374-b715bb94766c",
+      "name": "Responder 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: false, error: 'unauthorized' } }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "fee9a16d-a2e3-4ed0-bb1d-dc250904e48c",
+      "name": "Responder 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $('Webhook').first().json.body || {};\nconst r = body.rodada || {};\nconst tz = 'America/Sao_Paulo';\nconst dataRodada = r.data\n  ? new Date(r.data + 'T12:00:00Z').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', timeZone: 'UTC' })\n  : '';\nconst horario = [r.horario_inicio, r.horario_fim].filter(Boolean).join(' às ');\n\nconst num = (n) => String(n).padStart(2, '0');\nconst nomeEvento = (r.nome_evento || 'SE PASSOU, É PONTO').toUpperCase();\nconst diaSemana = r.data\n  ? new Date(r.data + 'T12:00:00Z').toLocaleDateString('pt-BR', { weekday: 'long', timeZone: 'UTC' }).toUpperCase()\n  : '';\nconst dataCurta = r.data\n  ? new Date(r.data + 'T12:00:00Z').toLocaleDateString('pt-BR', { timeZone: 'UTC' })\n  : '';\nconst titulares = (body.jogadores || []).map((j) => num(j.posicao) + ' - ' + j.nome + (j.novo ? ' 🆕' : ''));\nconst reservas = (body.reservas || []).map((j) => num(j.posicao) + ' - ' + j.nome);\nconst sairam = body.sairam || [];\nconst entraram = body.entraram || [];\n\nconst linhas = [\n  '🏐 *' + nomeEvento + '*',\n  '📅 *' + diaSemana + ' — ' + dataCurta + '*',\n  '',\n  body.atualizacao ? '🔄 *LISTA ATUALIZADA*' : null,\n  sairam.length ? '❌ Saiu: ' + sairam.join(', ') : null,\n  entraram.length ? '⬆️ Entrou: ' + entraram.join(', ') : null,\n  body.atualizacao ? '' : null,\n  '✅ *TITULARES — ' + titulares.length + '/' + r.limite_lista + '*',\n  '',\n  ...titulares,\n  '',\n  '⏳ *RESERVA — ' + reservas.length + '*',\n  '',\n  ...(reservas.length ? reservas : ['Nenhum jogador na reserva.']),\n  '',\n  r.status === 'open' ? '🟢 *LISTA ABERTA*' : '🔴 *LISTA FECHADA*',\n].filter((l) => l !== null);\n\nreturn [{ json: { mensagem: linhas.join('\\n') } }];"
+      },
+      "id": "9ca4e4f3-0d51-4b65-b11c-3dd0093f4bf4",
+      "name": "Montar mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').item.json.evolution_url }}/message/sendText/{{ $('Config').item.json.evolution_instance }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $('Config').item.json.evolution_apikey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ number: $('Config').item.json.grupo_jid, text: $json.mensagem }) }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "a9f64dd3-097d-4720-b3bd-ed79c005d583",
+      "name": "Enviar para o grupo (Evolution API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        -100
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Segredo válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Segredo válido?": {
+      "main": [
+        [
+          {
+            "node": "Responder 200",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder 200": {
+      "main": [
+        [
+          {
+            "node": "Montar mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar mensagem": {
+      "main": [
+        [
+          {
+            "node": "Enviar para o grupo (Evolution API)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "active": false
+}
