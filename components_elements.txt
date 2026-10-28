@@ -1,0 +1,337 @@
+--- src/components/AcessosARevisarTab.tsx ---
+8:import { Button } from "@/components/ui/button";
+10:import { Input } from "@/components/ui/input";
+11:import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+28:  const [selectedChanges, setSelectedChanges] = useState<Record<string, Record<string, "approve" | "remove" | null>>>({});
+70:    setSelectedChanges(prev => ({
+108:      setSelectedChanges({});
+158:          <Input
+161:            onChange={e => { setSearch(e.target.value); setPage(1); }}
+166:          <Select value={accessFilter} onValueChange={v => { setAccessFilter(v); setPage(1); }}>
+167:            <SelectTrigger className="w-[150px] h-11 text-[10px] uppercase font-black tracking-widest bg-brand-surface/50 border-brand-border">
+168:              <SelectValue placeholder="Acesso" />
+169:            </SelectTrigger>
+170:            <SelectContent className="bg-brand-surface border-brand-border text-brand-white">
+171:              <SelectItem value="all" className="text-[10px] uppercase font-bold">Todos Acessos</SelectItem>
+172:              <SelectItem value="pending" className="text-[10px] uppercase font-bold text-amber-500">Pendentes</SelectItem>
+173:              <SelectItem value="no_access" className="text-[10px] uppercase font-bold text-brand-silver">Sem Acesso</SelectItem>
+174:              <SelectItem value="has_access" className="text-[10px] uppercase font-bold text-emerald-500">Com Acesso</SelectItem>
+175:            </SelectContent>
+176:          </Select>
+177:          <Button
+180:            onClick={() => refetch()}
+219:                          onChange={() => toggleChange(p.id, g.id, status)}
+233:                  <Button
+236:                    onClick={() => handleDeletePlayer(p)}
+270:            <Button variant="outline" size="sm" className="h-9 text-[10px] border-brand-border" onClick={() => setSelectedChanges({})}>
+273:            <Button
+276:              onClick={handleBulkSave}
+--- src/components/AddPlayerModal.tsx ---
+2:import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+3:import { Button } from "@/components/ui/button";
+4:import { Input } from "@/components/ui/input";
+87:      <DialogTrigger asChild>
+88:        <Button size="sm" variant="outline" className="h-7 text-[10px] border-brand-gold/30 text-brand-gold px-2 font-bold uppercase">
+91:      </DialogTrigger>
+100:          <Input 
+103:            onChange={(e) => setQuery(e.target.value)}
+107:          <Button onClick={handleSearch} disabled={searching} className="bg-brand-gold text-brand-blue">
+123:              <Button size="sm" onClick={() => handleAdd(p)} className="bg-brand-gold text-brand-blue uppercase font-bold text-[10px]">
+--- src/components/AppDialogs.tsx ---
+4:  AlertDialogAction,
+5:  AlertDialogCancel,
+12:import { Button } from "@/components/ui/button";
+13:import { Input } from "@/components/ui/input";
+61:          <AlertDialogCancel disabled={isLoading} className="border-brand-border hover:bg-brand-surface/50 text-brand-white uppercase font-bold text-[10px]">
+63:          </AlertDialogCancel>
+64:          <AlertDialogAction
+65:            onClick={handleConfirm}
+74:          </AlertDialogAction>
+134:        <form onSubmit={handleSubmit} className="space-y-4">
+142:            <Input
+144:              onChange={(e) => {
+157:            <Button
+158:              type="button"
+160:              onClick={() => onOpenChange(false)}
+166:            <Button
+175:        </form>
+203:  const [input, setInput] = React.useState("");
+206:    if (open) setInput("");
+220:              <Input
+222:                onChange={(e) => setInput(e.target.value)}
+230:          <AlertDialogCancel disabled={isLoading} className="border-brand-border hover:bg-brand-surface/50 text-brand-white uppercase font-bold text-[10px]">
+232:          </AlertDialogCancel>
+233:          <AlertDialogAction
+234:            onClick={async (e) => {
+243:          </AlertDialogAction>
+--- src/components/ApprovalsTab.tsx ---
+8:import { Button } from "@/components/ui/button";
+11:import { Input } from "@/components/ui/input";
+12:import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+17:import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+23:                <Button variant="ghost" size="icon" className="h-8 w-8 text-brand-silver hover:text-brand-white">
+28:                <DropdownMenuItem onClick={() => onAction('approve_pending')} className="text-[10px] uppercase font-bold focus:bg-emerald-500/10 focus:text-emerald-400">
+30:                </DropdownMenuItem>
+31:                <DropdownMenuItem onClick={() => onAction('reject_pending')} className="text-[10px] uppercase font-bold focus:bg-red-500/10 focus:text-red-400">
+33:                </DropdownMenuItem>
+35:                <DropdownMenuItem onClick={() => onAction('approve_all')} className="text-[10px] uppercase font-bold">
+37:                </DropdownMenuItem>
+174:            <Input 
+177:              onChange={e => setSearch(e.target.value)}
+181:          <Select value={statusFilter} onValueChange={setStatusFilter}>
+182:            <SelectTrigger className="h-9 text-xs bg-brand-surface border-brand-border">
+183:              <SelectValue placeholder="Status" />
+184:            </SelectTrigger>
+185:            <SelectContent className="bg-brand-surface border-brand-border text-brand-white">
+186:              <SelectItem value="pending">Pendentes</SelectItem>
+187:              <SelectItem value="all">Todos</SelectItem>
+188:            </SelectContent>
+189:          </Select>
+239:                                                        onChange={() => {
+258:                                                            onClick={() => setIsRejecting({ open: true, player: p, group: { id: day.id!, name: day.name }, reason: "" })}
+--- src/components/AvatarUploadModal.tsx ---
+9:import { Button } from "@/components/ui/button";
+29:  const fileInputRef = useRef<HTMLInputElement>(null);
+37:  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+155:           <button
+156:             onClick={() => onOpenChange(false)}
+161:           </button>
+178:              onClick={() => fileInputRef.current?.click()}
+182:                <div className="w-16 h-16 rounded-full bg-brand-gold/10 flex items-center justify-center text-brand-gold group-hover:scale-110 transition-transform">
+192:                ref={fileInputRef} 
+193:                onChange={handleFileChange} 
+224:                  onChange={(e) => setZoom(Number(e.target.value))}
+230:                <Button 
+232:                  onClick={() => setImage(null)}
+237:                <Button 
+238:                  onClick={handleUpload}
+--- src/components/InteractiveTour.tsx ---
+3:import { Button } from '@/components/ui/button';
+35:      const clickableSelectors = 'button, a, [role="button"]';
+36:      const foundElements = Array.from(document.querySelectorAll<HTMLElement>(clickableSelectors))
+124:          onClick={handleClose}
+160:            <Button variant="ghost" size="icon" className="h-6 w-6 text-brand-silver hover:text-white" onClick={handleClose}>
+181:              <Button 
+185:                onClick={prevStep}
+190:              <Button 
+193:                onClick={nextStep}
+--- src/components/MobileNavBar.tsx ---
+27:          <button
+29:            onClick={() => setActiveTab(id as TabId)}
+42:          </button>
+--- src/components/MyHistoryDialog.tsx ---
+13:import { Button } from "@/components/ui/button";
+22:function formatDatePtBr(iso: string): string {
+30:  const formattedWeekday = capitalizedWeekday.charAt(0).toUpperCase() + capitalizedWeekday.slice(1);
+31:  return `${formattedWeekday}, ${day}/${month}/${y}`;
+37:  onChanged,
+42:  onChanged: () => void | Promise<void>;
+70:      await onChanged();
+137:                  <p className="text-xs Oswald font-bold text-brand-gold uppercase">{formatDatePtBr(nextReg.event_date)} • {nextReg.event_time?.slice(0,5)}</p>
+146:                      <Button 
+150:                        onClick={() => doLeave(nextReg.id)}
+183:                           {formatDatePtBr(r.event_date).split(',')[0]} · {r.event_date.split('-').reverse().slice(0,2).join('/')}
+--- src/components/NotificationsDialog.tsx ---
+16:import { formatDistanceToNow } from "date-fns";
+25:import { Button } from "@/components/ui/button";
+84:  const handleNotificationClick = (notification: AppNotification) => {
+110:            <Button 
+113:              onClick={() => markAllReadMutation.mutate()}
+143:                  <button
+145:                    onClick={() => handleNotificationClick(n)}
+170:                        <span>{formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ptBR })}</span>
+175:                  </button>
+--- src/components/PlayerAvatar.tsx ---
+13:  onClick?: (e: React.MouseEvent) => void;
+18:export function PlayerAvatar({ path, name, className, size = "md", imageClassName, onClick, previewable }: PlayerAvatarProps) {
+55:  const isClickable = !!onClick || previewable;
+66:      onClick={isClickable && hasPhoto ? (e) => {
+68:        if (onClick) onClick(e);
+--- src/components/PlayerAvatarEditable.tsx ---
+7:import { Button } from "@/components/ui/button";
+12:  AlertDialogAction,
+13:  AlertDialogCancel,
+39:  const fileInputRef = useRef<HTMLInputElement>(null);
+74:  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+87:      // 1. Validar formato e tamanho
+149:      if (fileInputRef.current) fileInputRef.current.value = "";
+191:          ref={fileInputRef}
+192:          onChange={handleFileChange}
+196:        <Button 
+197:          onClick={() => fileInputRef.current?.click()}
+206:          <Button 
+208:            onClick={() => setRemoveConfirmOpen(true)}
+227:            <AlertDialogCancel className="bg-transparent border-brand-border text-brand-silver hover:text-brand-white">Cancelar</AlertDialogCancel>
+228:            <AlertDialogAction 
+229:              onClick={handleRemove}
+235:            </AlertDialogAction>
+--- src/components/PlayerPhotoModal.tsx ---
+11:import { Button } from "@/components/ui/button";
+32:    // de forma estável se outros componentes filhos o utilizarem ou se
+41:        className="fixed inset-0 z-50 max-w-none w-screen h-screen p-0 border-0 bg-black/95 backdrop-blur-md outline-none shadow-none flex flex-col items-center justify-center overflow-hidden transition-all duration-200 [&>button]:hidden translate-x-0 translate-y-0 left-0 top-0"
+42:        onClick={() => onOpenChange(false)}
+55:          onClick={(e) => e.stopPropagation()}
+60:          <Button
+64:            onClick={() => onOpenChange(false)}
+73:          onClick={() => onOpenChange(false)}
+76:            className="relative transition-transform duration-200 scale-100 animate-in fade-in zoom-in-95 duration-200 cursor-default"
+77:            onClick={(e) => e.stopPropagation()}
+--- src/components/admin-config-section.tsx ---
+--- src/components/admin-organizers-tab.tsx ---
+7:import { Button } from "@/components/ui/button";
+9:import { Input } from "@/components/ui/input";
+142:                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleMove(idx, 'up')} disabled={idx === 0}><ArrowUp className="w-3.5 h-3.5" /></Button>
+143:                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleMove(idx, 'down')} disabled={idx === organizers.length - 1}><ArrowDown className="w-3.5 h-3.5" /></Button>
+144:                  <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400" onClick={() => handleRemove(p)} disabled={busy === p.player_id}><UserMinus className="w-3.5 h-3.5" /></Button>
+156:            <Input 
+159:              onChange={e => setSearch(e.target.value)}
+193:                <Button 
+197:                    onClick={() => {
+--- src/components/admin-players-tab.tsx ---
+8:import { Button } from "@/components/ui/button";
+11:import { Input } from "@/components/ui/input";
+12:import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+33:  const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
+112:            <Input 
+115:              onChange={e => { setSearch(e.target.value); setPage(1); }}
+122:            onChange={e => { setStatusFilter(e.target.value as any); setPage(1); }}
+155:                          onClick={(e) => {
+157:                            setSelectedPhoto({
+198:                        <Button variant="ghost" size="icon" className="h-7 w-7 text-brand-silver">
+203:                        <DropdownMenuItem onClick={() => {}} className="text-xs">
+205:                        </DropdownMenuItem>
+206:                        <DropdownMenuItem onClick={() => handleUpdateName(p.id, p.name)} className="text-xs">
+208:                        </DropdownMenuItem>
+209:                        <DropdownMenuItem 
+210:                          onClick={() => {
+235:                        </DropdownMenuItem>
+237:                        <DropdownMenuItem onClick={() => {}} className="text-xs">
+239:                        </DropdownMenuItem>
+240:                        <DropdownMenuItem 
+241:                          onClick={() => {
+263:                        </DropdownMenuItem>
+265:                        <DropdownMenuItem 
+266:                          onClick={() => {
+289:                        </DropdownMenuItem>
+291:                        <DropdownMenuItem 
+292:                          onClick={() => {
+316:                        </DropdownMenuItem>
+338:              <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)} className="h-7 text-[10px]">Anterior</Button>
+339:              <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(p => p + 1)} className="h-7 text-[10px]">Próxima</Button>
+346:        onOpenChange={(v) => !v && setSelectedPhoto(null)}
+--- src/components/admin-skills-tab.tsx ---
+11:import { Button } from "@/components/ui/button";
+14:import { Input } from "@/components/ui/input";
+16:import { Textarea } from "@/components/ui/textarea";
+27:  AlertDialogAction,
+28:  AlertDialogCancel,
+36:  Select,
+37:  SelectContent,
+38:  SelectItem,
+39:  SelectTrigger,
+40:  SelectValue,
+85:function formatDateTime(iso: string | null): string {
+144:  async function handleSave(form: EditForm) {
+148:        player_id: form.player_id,
+149:        primary_position: form.primary_position as any,
+150:        height_cm: form.height_cm,
+151:        notes: form.notes || null,
+154:        payload[k] = (form as any)[k];
+193:      <Input
+195:        onChange={(e) => setQuery(e.target.value)}
+200:        <Select value={`${status}|${evaluated}`} onValueChange={(v) => {
+205:          <SelectTrigger className="text-xs">
+206:            <SelectValue placeholder="Filtro" />
+207:          </SelectTrigger>
+208:          <SelectContent>
+209:            <SelectItem value="all|all">Todos</SelectItem>
+210:            <SelectItem value="all|yes">Avaliados</SelectItem>
+211:            <SelectItem value="all|no">Não avaliados</SelectItem>
+212:            <SelectItem value="active|all">Ativos</SelectItem>
+213:            <SelectItem value="inactive|all">Inativos</SelectItem>
+214:          </SelectContent>
+215:        </Select>
+217:        <Select value={sort} onValueChange={(v) => setSort(v as SortKey)}>
+218:          <SelectTrigger className="text-xs">
+219:            <SelectValue placeholder="Ordenar" />
+220:          </SelectTrigger>
+221:          <SelectContent>
+222:            <SelectItem value="name">Nome</SelectItem>
+223:            <SelectItem value="level_desc">Maior nível geral</SelectItem>
+224:            <SelectItem value="level_asc">Menor nível geral</SelectItem>
+225:            <SelectItem value="updated_desc">Atualização mais recente</SelectItem>
+226:            <SelectItem value="updated_asc">Atualização mais antiga</SelectItem>
+227:          </SelectContent>
+228:        </Select>
+282:                  Atualizado: {formatDateTime(r.updated_at)}
+286:                    <Button
+290:                      onClick={() => setConfirmClear(r)}
+295:                  <Button size="sm" variant="secondary" onClick={() => setEditing(r)}>
+329:            <AlertDialogCancel disabled={busy}>Cancelar</AlertDialogCancel>
+330:            <AlertDialogAction onClick={handleClear} disabled={busy}>
+332:            </AlertDialogAction>
+378:  onChange,
+383:  onChange: (v: number) => void;
+406:            {empty ? "Não informado" : scoreLabel(v)}
+419:            onValueChange={(arr) => {
+422:              onChange(Math.min(5, Math.max(0, n)));
+436:                "block h-5 w-5 rounded-full border-2 border-background shadow transition-transform duration-150 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+447:        <Button 
+451:          onClick={() => onChange(3)}
+453:          Informar nota
+476:  const [form, setForm] = useState<EditForm>(() => {
+500:      const v = (form as any)[k] as number | null;
+508:  }, [form]);
+516:      return "Informe uma altura válida em centímetros.";
+525:    const s: any = { ...form };
+529:  }, [form, weights, heightRaw]);
+543:    onSave({ ...form, height_cm: raw === "" ? null : Math.trunc(Number(raw)) });
+565:              value={form[k] as number | null}
+567:              onChange={(v) => set(k, v)}
+576:            <Select
+577:              value={form.primary_position}
+578:              onValueChange={(v) => set("primary_position", v)}
+580:              <SelectTrigger>
+581:                <SelectValue />
+582:              </SelectTrigger>
+583:              <SelectContent>
+585:                  <SelectItem key={p.value} value={p.value}>
+587:                  </SelectItem>
+589:              </SelectContent>
+590:            </Select>
+597:            <Input
+605:              onChange={(e) => setHeightRaw(e.target.value)}
+616:              value={form.notes}
+618:              onChange={(e) => set("notes", e.target.value)}
+641:                ? "Nível geral disponível após informar todas as notas."
+651:          <Button variant="outline" onClick={onCancel} disabled={busy}>
+654:          <Button onClick={submit} disabled={!canSave}>
+672:  const [form, setForm] = useState<SkillWeights | null>(null);
+681:  const current = form ?? saved;
+691:    !!form &&
+692:    fields.some(([k]) => (form as any)?.[k] !== (saved as any)?.[k]);
+724:          <Button
+728:            onClick={() => {
+735:          <Button
+739:            onClick={() => setForm({ ...DEFAULT_WEIGHTS })}
+743:          <Button size="sm" onClick={save} disabled={busy || total !== 100 || !dirty}>
+755:          <Input
+762:            onChange={(e) => setForm({ ...current, [k]: Math.trunc(Number(e.target.value) || 0) } as SkillWeights)}
+--- src/components/public-fund.tsx ---
+5:  formatBRL,
+12:const formatPercent = (v: number | string | null | undefined): string => {
+18:const formatCivilDate = (iso: string | null | undefined): string | null => {
+50:  const due = formatCivilDate(summary.due_date);
+65:          <p className="text-sm font-bold">{formatBRL(total)}</p>
+69:          <p className="text-sm font-bold text-emerald-400">{formatBRL(collected)}</p>
+81:            {formatBRL(goalMet ? surplus : remaining)}
+96:            ? `${formatPercent(percent)} — Meta alcançada`
+97:            : formatPercent(percent)}
+176:      if (surplus > 0) sub = `Contribuição excedente: ${formatBRL(surplus)}.`;
+181:      text = `Você possui um débito pendente de ${formatBRL(outstanding)} no rateio dos equipamentos.`;
+186:      text = `Você realizou um pagamento parcial. Ainda faltam ${formatBRL(outstanding)}.`;
+191:      text = "Você informou pagamento — aguardando confirmação do administrador.";
+--- src/components/public-ui.tsx ---
+123:              <button
+124:                onClick={() => {
+152:              </button>

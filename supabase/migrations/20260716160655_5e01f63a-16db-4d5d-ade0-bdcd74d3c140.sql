@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.test_admin_block_with_failure(uuid, date, date, uuid, integer);

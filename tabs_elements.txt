@@ -1,0 +1,246 @@
+--- src/routes/_admin/tabs/FundParticipantsTab.tsx ---
+16:import { Button } from "@/components/ui/button";
+17:import { Input } from "@/components/ui/input";
+20:import { Textarea } from "@/components/ui/textarea";
+40:  const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
+42:  const [selectedParticipant, setSelectedParticipant] = useState<any>(null);
+75:      toast.error("Informe um valor válido");
+180:            <Input 
+184:              onChange={(e) => setSearch(e.target.value)}
+199:                    onClick={(e) => {
+201:                      setSelectedPhoto({
+254:                <Button 
+258:                  onClick={() => {
+259:                    setSelectedParticipant(item);
+268:                  <Button 
+272:                    onClick={() => handleMarkAsPaid(item)}
+279:                <Button 
+286:                  onClick={() => {
+326:                <Input 
+331:                  onChange={(e) => setPaymentValue(e.target.value)}
+343:                onChange={(e) => setSelectedParticipant((prev: any) => ({ ...prev, notes: e.target.value }))}
+348:            <Button variant="ghost" className="flex-1 h-10 Oswald uppercase text-brand-silver" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+349:            <Button className="flex-1 h-10 bg-brand-gold text-brand-blue Oswald uppercase font-bold" onClick={handleRegisterPayment} disabled={busy}>
+357:        onOpenChange={(v) => !v && setSelectedPhoto(null)}
+--- src/routes/_admin/tabs/IncidentsTab.tsx ---
+12:import { Button } from "@/components/ui/button";
+14:import { Input } from "@/components/ui/input";
+16:import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+18:import { Textarea } from "@/components/ui/textarea";
+26:  const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
+42:  const [formData, setFormData] = useState({
+74:    if (!formData.player_id) {
+87:          ...formData,
+117:        <Button 
+120:          onClick={() => setIsModalOpen(true)}
+128:        <Input 
+132:          onChange={(e) => setSearch(e.target.value)}
+147:                    onClick={(e) => {
+149:                      setSelectedPhoto({
+182:                <Button 
+186:                  onClick={(e) => {
+188:                    setSelectedPhoto({
+223:                <Input 
+226:                  onChange={(e) => setSearch(e.target.value)}
+230:              <Select 
+231:                value={formData.player_id} 
+232:                onValueChange={(val) => setFormData(prev => ({ ...prev, player_id: val }))}
+234:                <SelectTrigger className="bg-brand-surface border-brand-border h-9 text-xs">
+235:                  <SelectValue placeholder="Selecione o jogador" />
+236:                </SelectTrigger>
+237:                <SelectContent className="bg-brand-blue border-brand-border text-brand-white max-h-[300px]">
+244:                      <SelectItem key={p.id} value={p.id} className="text-xs focus:bg-brand-gold focus:text-brand-blue">
+259:                      </SelectItem>
+265:                </SelectContent>
+266:              </Select>
+272:                <Select 
+273:                  value={formData.incident_type} 
+274:                  onValueChange={(val: any) => setFormData(prev => ({ ...prev, incident_type: val }))}
+276:                  <SelectTrigger className="bg-brand-surface border-brand-border h-9 text-xs">
+277:                    <SelectValue />
+278:                  </SelectTrigger>
+279:                  <SelectContent className="bg-brand-blue border-brand-border text-brand-white">
+280:                    <SelectItem value="no_show" className="text-xs">Falta</SelectItem>
+281:                    <SelectItem value="late_leave" className="text-xs">Saída Tardia</SelectItem>
+282:                  </SelectContent>
+283:                </Select>
+287:                <Input 
+290:                  value={formData.suggested_rounds}
+291:                  onChange={(e) => setFormData(prev => ({ ...prev, suggested_rounds: parseInt(e.target.value) || 1 }))}
+299:              <Select 
+300:                value={formData.status} 
+301:                onValueChange={(val: any) => setFormData(prev => ({ ...prev, status: val }))}
+303:                <SelectTrigger className="bg-brand-surface border-brand-border h-9 text-xs">
+304:                  <SelectValue />
+305:                </SelectTrigger>
+306:                <SelectContent className="bg-brand-blue border-brand-border text-brand-white">
+307:                  <SelectItem value="pending" className="text-xs">Pendente</SelectItem>
+308:                  <SelectItem value="completed" className="text-xs">OK</SelectItem>
+309:                </SelectContent>
+310:              </Select>
+317:                value={formData.admin_notes}
+318:                onChange={(e) => setFormData(prev => ({ ...prev, admin_notes: e.target.value }))}
+324:            <Button variant="ghost" className="flex-1 h-9 Oswald uppercase text-brand-silver" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+325:            <Button className="flex-1 h-9 bg-brand-gold text-brand-blue Oswald uppercase font-bold" onClick={handleCreate} disabled={busy}>
+334:        onOpenChange={(v: boolean) => !v && setSelectedPhoto(null)}
+--- src/routes/_admin/tabs/ListTab.tsx ---
+8:import { Button } from "@/components/ui/button";
+21:  DropdownMenuItem,
+119:  const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
+162:        <Button onClick={() => refetch()} className="bg-brand-gold text-brand-blue uppercase font-bold text-[10px]">
+203:    transform,
+209:    transform: CSS.Transform.toString(transform),
+241:          onClick={(e) => {
+290:                <button 
+298:                </button>
+302:                  <DropdownMenuItem
+307:                    onClick={async () => {
+322:                  </DropdownMenuItem>
+336:          <Button variant="ghost" size="icon" className="h-8 w-8 text-brand-silver hover:text-brand-white">
+341:          <DropdownMenuItem 
+343:            onClick={() => onPhotoClick({
+354:          </DropdownMenuItem>
+355:          <DropdownMenuItem 
+357:            onClick={() => handleRemove(reg.id, playerName)}
+361:          </DropdownMenuItem>
+440:        <Button 
+441:          onClick={async () => {
+472:              <Button size="sm" onClick={handleToggleStatus} variant="outline" className="h-7 text-[10px] border-brand-gold/30 text-brand-gold px-2 font-bold uppercase" disabled={isPending}>
+482:                <Button size="sm" variant="outline" className="h-7 text-[10px] border-brand-gold/30 text-brand-gold px-2 font-bold uppercase flex items-center gap-1">
+488:                <DropdownMenuItem 
+489:                  onClick={() => setSyncConfirmOpen(true)}
+494:                </DropdownMenuItem>
+502:              description="Esta ação garantirá os organizadores configurados desta turma na rodada atual e os posicionará conforme a prioridade definida (Topo da Lista)."
+542:            // Determinar se o organizador deve ser exibido com badge (ajuste de performance opcional)
+573:                    onPhotoClick={setSelectedPhoto}
+609:                              onPhotoClick={setSelectedPhoto}
+--- src/routes/_admin/tabs/SettingsTab.tsx ---
+9:import { Button } from "@/components/ui/button";
+10:import { Switch } from "@/components/ui/switch";
+11:import { Input } from "@/components/ui/input";
+13:import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+59:  const [formData, setFormData] = useState<any>(null);
+77:    if (!groupId || !formData) return;
+85:    console.log("[SAVE CLASS SETTINGS] max_waitlist raw:", formData.max_waitlist);
+86:    console.log("[SAVE CLASS SETTINGS] max_waitlist typeof:", typeof formData.max_waitlist);
+87:    console.log("[SAVE CLASS SETTINGS] max_waitlist convertido:", Number(formData.max_waitlist));
+88:    console.log("[SAVE CLASS SETTINGS] é número válido:", Number.isFinite(Number(formData.max_waitlist)));
+92:      const mainLimit = Number(formData.main_limit);
+93:      const priorityMinutes = Number(formData.priority_minutes);
+96:        toast.error("Informe um número válido de titulares.");
+102:        toast.error("Informe um tempo de prioridade válido.");
+109:      if (formData.max_waitlist !== "" && formData.max_waitlist !== null && formData.max_waitlist !== undefined) {
+110:        const parsed = Number(formData.max_waitlist);
+112:          toast.error("Informe uma quantidade válida de reservas.");
+121:        access_restriction_active: !!formData.access_restriction_active,
+122:        open_weekday: formData.open_weekday,
+123:        open_time: formData.open_time,
+128:        deadline_weekday: formData.withdrawal_deadline_weekday,
+129:        deadline_time: formData.withdrawal_deadline_time,
+130:        auto_promote: !!formData.auto_promote_reservations,
+131:        auto_generate_incidents: !!formData.auto_generate_incidents,
+132:        announcement: formData.announcement || null,
+183:  if (error || !formData || loadingTimeout) {
+193:        <Button onClick={() => { setLoadingTimeout(false); refetch(); }} className="bg-brand-gold text-brand-blue font-bold h-9 Oswald uppercase">Tentar Novamente</Button>
+203:        <Button 
+205:          onClick={handleSave} 
+223:            <Switch 
+224:              checked={!!formData.access_restriction_active}
+225:              onCheckedChange={(val) => updateField("access_restriction_active", val)}
+232:              <Select 
+233:                value={formData.open_weekday?.toString()} 
+234:                onValueChange={(val) => updateField("open_weekday", parseInt(val))}
+236:                <SelectTrigger className="bg-brand-surface/40 border-brand-border h-9 text-xs text-brand-white Oswald uppercase">
+237:                  <SelectValue />
+238:                </SelectTrigger>
+239:                <SelectContent className="bg-brand-blue border-brand-border text-brand-white">
+240:                  {DAYS.map(d => <SelectItem key={d.value} value={d.value.toString()} className="text-xs Oswald uppercase">{d.label}</SelectItem>)}
+241:                </SelectContent>
+242:              </Select>
+246:              <Input 
+248:                value={formData.open_time?.substring(0, 5) ?? ""}
+249:                onChange={(e) => updateField("open_time", e.target.value)}
+261:            <Input 
+263:              value={formData.priority_minutes ?? ""}
+264:              onChange={(e) => updateField("priority_minutes", e.target.value)}
+273:              <Input 
+275:                value={formData.main_limit ?? ""}
+276:                onChange={(e) => updateField("main_limit", e.target.value)}
+282:              <Input 
+284:                value={formData.max_waitlist === null || formData.max_waitlist === undefined ? "" : formData.max_waitlist}
+285:                onChange={(e) => {
+300:            <Select 
+301:              value={formData.withdrawal_deadline_weekday?.toString()} 
+302:              onValueChange={(val) => updateField("withdrawal_deadline_weekday", parseInt(val))}
+304:              <SelectTrigger className="bg-brand-surface/40 border-brand-border h-9 text-xs text-brand-white Oswald uppercase">
+305:                <SelectValue />
+306:              </SelectTrigger>
+307:              <SelectContent className="bg-brand-blue border-brand-border text-brand-white">
+308:                {DAYS.map(d => <SelectItem key={d.value} value={d.value.toString()} className="text-xs Oswald uppercase">{d.label}</SelectItem>)}
+309:              </SelectContent>
+310:            </Select>
+314:            <Input 
+316:              value={formData.withdrawal_deadline_time?.substring(0, 5) ?? ""}
+317:              onChange={(e) => updateField("withdrawal_deadline_time", e.target.value)}
+328:          <Input 
+329:            value={formData.announcement ?? ""}
+330:            onChange={(e) => updateField("announcement", e.target.value)}
+331:            placeholder="Ex: Trazer uniforme azul..."
+340:        <Button variant="outline" className="h-12 flex flex-col gap-0.5 border-brand-border hover:bg-brand-surface/50 text-[10px] uppercase font-bold text-brand-white Oswald">
+344:        <Button variant="outline" className="h-12 flex flex-col gap-0.5 border-brand-border hover:bg-brand-surface/50 text-[10px] uppercase font-bold text-brand-white Oswald">
+--- src/routes/_admin/tabs/TeamsTab.tsx ---
+27:import { Button } from "@/components/ui/button";
+29:import { Input } from "@/components/ui/input";
+61:  DropdownMenuItem,
+92:  const [selectedPlayerPhoto, setSelectedPlayerPhoto] = useState<{ id: string; name: string; avatar_path?: string | null; phone?: string | null; group_name?: string | null; position?: string | null } | null>(null);
+179:      const performSave = async () => {
+197:      const timer = setTimeout(performSave, 1000);
+465:          <Button 
+466:            size="sm" variant="outline" onClick={() => handleDistribute("balanced")} 
+472:          <Button 
+473:            size="sm" variant="outline" onClick={() => handleDistribute("random")} 
+479:          <Button 
+480:            size="sm" onClick={shareToWhatsapp} variant="ghost" 
+488:            <Button 
+489:              size="sm" onClick={undo} variant="ghost" 
+498:              <Button size="sm" variant="ghost" className="h-7 text-[10px] text-brand-silver font-bold Oswald uppercase">
+503:              <DropdownMenuItem 
+504:                onClick={() => setClearConfirmOpen(true)}
+508:              </DropdownMenuItem>
+520:          <Button size="sm" onClick={handleManualSave} className="h-7 text-[10px] bg-brand-gold text-brand-blue font-bold Oswald uppercase">
+543:                    <Button
+547:                      onClick={() => setActiveTeam(num as 1 | 2 | 3)}
+575:                  <Input 
+578:                    onChange={(e) => setSearchTerm(e.target.value.toUpperCase())}
+593:                          onClick={() => movePlayerManual(player, activeTeam)}
+595:                          onPhotoClick={setSelectedPlayerPhoto}
+626:                          onPhotoClick={setSelectedPlayerPhoto}
+685:                            onPhotoClick={setSelectedPlayerPhoto}
+705:            <div className="flex items-center gap-2 p-2 bg-brand-gold text-brand-blue rounded shadow-2xl opacity-90 scale-105 transition-transform border border-brand-gold">
+719:        description="Todos os jogadores voltarão para a lista de disponíveis. A formação salva será perdida ao clicar em Salvar depois."
+731:  onClick,
+743:  onClick?: () => void;
+755:    transform,
+761:    transform: CSS.Transform.toString(transform),
+772:      onClick={onClick}
+782:        <div {...attributes} {...listeners} className="p-1 cursor-grab active:cursor-grabbing text-brand-silver/20 hover:text-brand-silver transition-colors" onClick={(e) => e.stopPropagation()}>
+791:          onClick={(e) => {
+817:      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+819:          <button 
+820:            onClick={onToggleLock}
+827:          </button>
+832:            <Button variant="ghost" size="icon" className="h-6 w-6 text-brand-silver/50 hover:text-brand-white">
+837:            <DropdownMenuItem onClick={() => onMove('available')} className="text-[10px] uppercase cursor-pointer">
+839:            </DropdownMenuItem>
+840:            <DropdownMenuItem onClick={() => onMove('reserves')} className="text-[10px] uppercase cursor-pointer">
+842:            </DropdownMenuItem>
+844:            <DropdownMenuItem onClick={() => onMove(1)} className={cn("text-[10px] uppercase cursor-pointer", currentTeam === 1 && "text-brand-gold")}>
+846:            </DropdownMenuItem>
+847:            <DropdownMenuItem onClick={() => onMove(2)} className={cn("text-[10px] uppercase cursor-pointer", currentTeam === 2 && "text-brand-gold")}>
+849:            </DropdownMenuItem>
+850:            <DropdownMenuItem onClick={() => onMove(3)} className={cn("text-[10px] uppercase cursor-pointer", currentTeam === 3 && "text-brand-gold")}>
+852:            </DropdownMenuItem>
+869:              <Button 
+874:                onClick={() => onMove(num as 1 | 2 | 3)}
+879:            <Button 
+883:              onClick={() => onMove('available')}

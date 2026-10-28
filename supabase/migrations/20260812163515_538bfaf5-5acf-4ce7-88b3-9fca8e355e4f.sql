@@ -1,0 +1,9 @@
+DO $$
+BEGIN
+    DELETE FROM public.registrations WHERE event_id = '88888888-8888-8888-8888-888888888888';
+    DELETE FROM public.notifications WHERE event_id = '88888888-8888-8888-8888-888888888888';
+    DELETE FROM public.volleyball_events WHERE id = '88888888-8888-8888-8888-888888888888';
+    DELETE FROM public.player_groups WHERE group_id = '77777777-7777-7777-7777-777777777777';
+    DELETE FROM public.app_settings WHERE group_id = '77777777-7777-7777-7777-777777777777';
+    DELETE FROM public.groups WHERE id = '77777777-7777-7777-7777-777777777777';
+END $$;

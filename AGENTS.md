@@ -1,0 +1,1 @@
+- The `admin_update_automation` server wrapper delegates to the existing typed `admin_update_app_settings` RPC after the admin role check, keeping automation persistence on its existing database contract.

@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /admin
+Disallow: /_admin
+Disallow: /auth
+Disallow: /api
+Disallow: /profile
+Disallow: /notifications
+
+Sitemap: https://se-passou-e-ponto.lovable.app/sitemap.xml

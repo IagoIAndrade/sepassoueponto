@@ -1,0 +1,184 @@
+1:import { createFileRoute, Link } from "@tanstack/react-router";
+8:import { Button } from "@/components/ui/button";
+10:import { Input } from "@/components/ui/input";
+12:import { Checkbox } from "@/components/ui/checkbox";
+20:  DialogTrigger,
+22:import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+27:  AlertDialogAction,
+28:  AlertDialogCancel,
+97:function formatDatePtBr(iso: string): string {
+105:  const formattedWeekday = capitalizedWeekday.charAt(0).toUpperCase() + capitalizedWeekday.slice(1);
+106:  return `${formattedWeekday}, ${day}/${month}/${y}`;
+108:function formatTime(t: string | null | undefined): string {
+112:function formatCreatedAt(iso: string): string {
+115:function formatDeadlineLabel(iso: string, timezone: string): string {
+121:    }).format(d);
+126:    }).format(d);
+456:  const [selectedPlayerPhoto, setSelectedPlayerPhoto] = useState<{ 
+721:              <Button 
+723:                onClick={() => logout().then(() => refreshAll())}
+807:  /** Texto informativo (não clicável) da situação do jogador na rodada. */
+846:    if (s === "payment_reported") return "Informou pagamento";
+884:                <button
+885:                  onClick={() => setNotificationsOpen(true)}
+898:                </button>
+901:                  <DialogTrigger asChild>
+914:                  </DialogTrigger>
+926:                           <Button 
+929:                            onClick={() => {
+941:                          <Button 
+944:                            onClick={() => {
+954:                            <Link
+957:                              onClick={() => setProfileOpen(false)}
+961:                            </Link>
+964:                          <Button 
+967:                            onClick={async () => {
+981:              <Button
+982:                onClick={() => setAuthOpen(true)}
+1002:                <button
+1004:                  onClick={() => setGroupId(g.id)}
+1019:                </button>
+1073:                    <Button 
+1074:                      onClick={async () => {
+1125:                            {event ? formatDatePtBr(event.event_date) : "Próxima rodada em breve"}
+1128:                            {event ? `${formatTime(event.start_time)} às ${formatTime(event.end_time)}` : "Aguardando horário"}
+1151:                            }).format(roundState.openAt).replace(':', 'h') : "--h--"}
+1160:                            }).format(roundState.priorityEndsAt).replace(':', 'h') : "--h--"}
+1221:                          <Button
+1223:                            onClick={() => setLeaveConfirmOpen(true)}
+1229:                          <Button
+1230:                            onClick={handleJoinClick}
+1296:                        <Button
+1298:                          onClick={() => setAddOtherOpen(true)}
+1425:                                  onClick={(e) => {
+1427:                                    setSelectedPlayerPhoto({
+1454:                                      {formatCreatedAt(r.created_at)}
+1502:                                    onClick={(e) => {
+1504:                                      setSelectedPlayerPhoto({
+1531:                                      {formatCreatedAt(r.created_at)}
+1632:                                          onClick={(e) => {
+1634:                                            setSelectedPlayerPhoto({
+1737:                                    onClick={(e) => {
+1739:                                      setSelectedPlayerPhoto({
+1797:              <button 
+1798:                onClick={() => refreshAll()}
+1803:              </button>
+1814:          <Link
+1820:          </Link>
+1834:          onOpenChange={(v) => !v && setSelectedPlayerPhoto(null)}
+1861:          onChanged={refreshAll}
+1862:          setSelectedPlayerPhoto={setSelectedPlayerPhoto}
+1891:            <AlertDialogCancel disabled={leaveBusy}>Cancelar</AlertDialogCancel>
+1892:            <AlertDialogAction
+1893:              onClick={(e) => {
+1906:            </AlertDialogAction>
+1926:                    {formatDeadlineLabel(lateLeaveInfo.deadline_at, lateLeaveInfo.timezone)}
+1949:            <AlertDialogCancel disabled={leaveBusy}>Cancelar</AlertDialogCancel>
+1950:            <AlertDialogAction
+1951:              onClick={(e) => {
+1964:            </AlertDialogAction>
+1996:                  <Input
+1999:                    onChange={(e) => setEditNameValue(e.target.value)}
+2024:                    <Button
+2025:                      type="button"
+2027:                      onClick={handleTogglePush}
+2057:                    <button
+2058:                      type="button"
+2059:                      onClick={handleTogglePush}
+2064:                    </button>
+2071:                <Button 
+2072:                  onClick={async () => {
+2107:                <Button
+2108:                  type="button"
+2110:                  onClick={() => setEditNameOpen(false)}
+2137:            <AlertDialogCancel disabled={deleteAccountBusy} className="bg-white/5 border-white/10 text-white hover:bg-white/10 sm:flex-1">
+2139:            </AlertDialogCancel>
+2140:            <AlertDialogAction
+2142:              onClick={async (e) => {
+2159:            </AlertDialogAction>
+2166:        onChanged={refreshAll}
+2210:  const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
+2227:    setSelectedGroups([]);
+2242:        // This is handled in the Step 4 button directly now for signup
+2327:              <Input
+2335:                onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ""))}
+2341:              <Input
+2348:                onChange={(e) => setNewPin2(e.target.value.replace(/\D/g, ""))}
+2358:              <Button
+2359:                onClick={submitReset}
+2374:            <Tabs value={tab} onValueChange={(v) => { setTab(v as any); setStep(1); }} className="w-full">
+2376:                <TabsTrigger value="login" className="text-[10px] Oswald uppercase font-bold data-[state=active]:bg-brand-gold data-[state=active]:text-brand-background">Acesso</TabsTrigger>
+2377:                <TabsTrigger value="signup" className="text-[10px] Oswald uppercase font-bold data-[state=active]:bg-brand-gold data-[state=active]:text-brand-background">Cadastro</TabsTrigger>
+2386:                        <Input
+2389:                          onChange={(e) => setFirstName(e.target.value)}
+2396:                        <Input
+2400:                          onChange={(e) => setLastName(e.target.value)}
+2407:                      <Input
+2414:                        onChange={(e) => {
+2420:                        <p className="text-[10px] text-red-400">Informe 10 ou 11 dígitos (com DDD).</p>
+2428:                          <Input
+2434:                            onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+2436:                          <button 
+2437:                            type="button"
+2438:                            onClick={() => setShowPin(!showPin)}
+2442:                          </button>
+2447:                        <Input
+2453:                          onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ""))}
+2468:                        const isSelected = selectedGroups.includes(g.id);
+2472:                            onClick={() => {
+2473:                              if (isSelected) {
+2474:                                setSelectedGroups(selectedGroups.filter(id => id !== g.id));
+2476:                                setSelectedGroups([...selectedGroups, g.id]);
+2481:                              isSelected ? "border-brand-gold bg-brand-gold/5" : "border-brand-border hover:border-brand-silver/50"
+2488:                            {isSelected ? <CheckCircle2 className="text-brand-gold w-5 h-5" /> : <div className="w-5 h-5 rounded-full border-2 border-brand-border" />}
+2504:                          onClick={() => {
+2521:                          <Camera className="w-10 h-10 text-brand-gold mb-2 group-hover:scale-110 transition-transform" />
+2529:                          <button 
+2531:                            onClick={() => {
+2537:                          </button>
+2539:                        <Button variant="outline" size="sm" onClick={() => setPhoto(null)}>Trocar Foto</Button>
+2605:                  <Input
+2610:                    onChange={(e) => setPhone(e.target.value)}
+2621:                    <Input
+2628:                      onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+2632:                    <button 
+2633:                      type="button"
+2634:                      onClick={() => setShowPin(!showPin)}
+2638:                    </button>
+2642:                  <Checkbox
+2645:                    onCheckedChange={(v) => setRemember(Boolean(v))}
+2656:                <Button 
+2658:                  onClick={() => setStep(step - 1)}
+2666:              <Button
+2667:                onClick={async () => {
+2693:                      toast.error("WhatsApp inválido. Informe exatamente 11 dígitos (DDD + número).");
+2914:              <Button
+2916:                onClick={() => setConfirm(null)}
+2922:              <Button onClick={doAdd} disabled={busy} className="flex-1 bg-brand-gold text-brand-blue font-bold text-[10px] Oswald uppercase">
+2936:              <Input
+2941:                onChange={(e) => scheduleSearch(e.target.value)}
+2953:                  <Button
+2956:                    onClick={() => runSearch(query.trim())}
+2966:                      <button
+2967:                        onClick={() => setConfirm(r)}
+2971:                      </button>
+2995:  onChanged,
+2996:  setSelectedPlayerPhoto,
+3002:  onChanged: () => void | Promise<void>;
+3003:  setSelectedPlayerPhoto: (p: any) => void;
+3032:  const performLeave = async (
+3072:      await onChanged();
+3091:    await performLeave(confirmLeave, false);
+3131:                    onClick={(e) => {
+3133:                      setSelectedPlayerPhoto({
+3151:                  <Button
+3155:                    onClick={() =>
+3188:            <Button
+3190:              onClick={() => setConfirmLeave(null)}
+3196:            <Button variant="destructive" onClick={doLeave} disabled={!!busyId} className="flex-1 text-[10px] Oswald uppercase font-bold">
+3222:                    {formatDeadlineLabel(lateInfo.deadline_at, lateInfo.timezone)}
+3245:            <Button
+3247:              onClick={() => setLateInfo(null)}
+3253:            <Button
+3255:              onClick={() =>
+3257:                performLeave(

@@ -1,0 +1,2 @@
+-- Migration: Prioridade Explícita
+-- A coluna player_groups.has_priority e as funções de gestão já foram integradas ao banco de dados.

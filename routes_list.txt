@@ -1,0 +1,12 @@
+src/routes/index.tsx:1:10:import { createFileRoute, Link } from "@tanstack/react-router";
+src/routes/index.tsx:89:22:export const Route = createFileRoute("/")({
+src/routes/admin.login.tsx:1:10:import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+src/routes/admin.login.tsx:13:22:export const Route = createFileRoute("/admin/login")({
+src/routes/_admin/route.tsx:1:10:import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+src/routes/_admin/route.tsx:5:22:export const Route = createFileRoute("/_admin")({
+src/routes/api/player-signup.ts:1:10:import { createFileRoute } from "@tanstack/react-router";
+src/routes/api/player-signup.ts:6:22:export const Route = createFileRoute("/api/player-signup")({
+src/routes/_admin/admin.tsx:1:10:import { createFileRoute } from "@tanstack/react-router";
+src/routes/_admin/admin.tsx:47:22:export const Route = createFileRoute('/_admin/admin')({
+src/routes/api/public/push-trigger.ts:1:10:import { createFileRoute } from '@tanstack/react-router';
+src/routes/api/public/push-trigger.ts:4:22:export const Route = createFileRoute('/api/public/push-trigger')({

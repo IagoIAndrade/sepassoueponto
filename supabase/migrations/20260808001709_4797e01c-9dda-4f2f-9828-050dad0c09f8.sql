@@ -1,0 +1,1 @@
+UPDATE public.app_settings SET access_restriction_active = false WHERE group_id = '145e17d7-5458-4b6a-a626-3eadda9e5747';

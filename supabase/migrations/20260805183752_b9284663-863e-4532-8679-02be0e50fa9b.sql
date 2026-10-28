@@ -1,0 +1,1 @@
+UPDATE volleyball_events SET status = 'scheduled' WHERE id = '58bcc5bb-f765-49dd-bee9-a3765488f649';

@@ -1,0 +1,12 @@
+GRANT ALL ON public.registrations TO authenticated;
+GRANT ALL ON public.registrations TO service_role;
+GRANT ALL ON public.volleyball_events TO authenticated;
+GRANT ALL ON public.volleyball_events TO service_role;
+GRANT ALL ON public.admin_actions_log TO authenticated;
+GRANT ALL ON public.admin_actions_log TO service_role;
+GRANT EXECUTE ON FUNCTION public.admin_remove_registration(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_remove_registration(uuid, uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.lock_event(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.lock_event(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.internal_is_blocked(uuid, date) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.internal_is_blocked(uuid, date) TO service_role;
