@@ -14,11 +14,14 @@ import {
   Copy, 
   Download, 
   Loader2,
-  ChevronLeft
+  ChevronLeft,
+  ShieldCheck,
+  Send
 } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { get_avatar_signed_url } from "@/lib/avatars.functions";
+import { admin_send_teams_whatsapp } from "@/lib/admin-extra.functions";
 import { 
   imageUrlToDataUrl, 
   getFriendlyGroupName, 
@@ -46,6 +49,7 @@ interface TeamShareDialogProps {
   teams: TeamData[];
   groupName?: string;
   eventDate?: string;
+  eventId?: string;
 }
 
 /**
@@ -170,9 +174,11 @@ function TeamExportLayout({
   );
 }
 
-export function TeamShareDialog({ open, onOpenChange, teams, groupName, eventDate }: TeamShareDialogProps) {
+export function TeamShareDialog({ open, onOpenChange, teams, groupName, eventDate, eventId }: TeamShareDialogProps) {
   const [view, setView] = useState<'menu' | 'image-preview' | 'pdf-preview'>('menu');
   const [generating, setGenerating] = useState(false);
+  const [sendingTo, setSendingTo] = useState<'organizadores' | 'jogadores' | null>(null);
+  const sendTeamsWhatsapp = useServerFn(admin_send_teams_whatsapp);
   const [exportImage, setExportImage] = useState<string | null>(null);
   const [preparedAvatars, setPreparedAvatars] = useState<Record<string, string | null>>({});
   const exportRef = useRef<HTMLDivElement>(null);
@@ -297,6 +303,30 @@ export function TeamShareDialog({ open, onOpenChange, teams, groupName, eventDat
     }
   };
 
+  const handleSendWhatsapp = async (target: 'organizadores' | 'jogadores') => {
+    if (!eventId || sendingTo) return;
+    setSendingTo(target);
+    try {
+      await sendTeamsWhatsapp({
+        data: {
+          event_id: eventId,
+          target,
+          teams: teams.map(t => ({
+            numero: t.team_number,
+            jogadores: t.players.map(p => ({ nome: p.player_name.trim().replace(/\s+/g, ' ') })),
+          })),
+        },
+      });
+      toast.success(target === 'organizadores'
+        ? "Times enviados aos organizadores para validação."
+        : "Times enviados ao grupo dos jogadores.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao enviar os times.");
+    } finally {
+      setSendingTo(null);
+    }
+  };
+
   const startImageExport = async () => {
     setView('image-preview');
     await prepareShareData();
@@ -343,6 +373,26 @@ export function TeamShareDialog({ open, onOpenChange, teams, groupName, eventDat
 
         {view === 'menu' && (
           <div className="p-6 space-y-3">
+            <Button variant="outline" className="w-full h-16 justify-start gap-4 border-brand-border bg-muted/20 hover:bg-muted/40" onClick={() => handleSendWhatsapp('organizadores')} disabled={!eventId || !!sendingTo}>
+              <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
+                {sendingTo === 'organizadores' ? <Loader2 className="w-5 h-5 text-amber-500 animate-spin" /> : <ShieldCheck className="w-5 h-5 text-amber-500" />}
+              </div>
+              <div className="text-left">
+                <p className="text-white font-bold Oswald uppercase text-sm">Enviar aos Organizadores</p>
+                <p className="text-[10px] text-brand-silver Oswald uppercase font-medium">Para validar os times no WhatsApp</p>
+              </div>
+            </Button>
+
+            <Button variant="outline" className="w-full h-16 justify-start gap-4 border-brand-border bg-muted/20 hover:bg-muted/40" onClick={() => handleSendWhatsapp('jogadores')} disabled={!eventId || !!sendingTo}>
+              <div className="w-10 h-10 rounded-full bg-sky-500/10 flex items-center justify-center">
+                {sendingTo === 'jogadores' ? <Loader2 className="w-5 h-5 text-sky-500 animate-spin" /> : <Send className="w-5 h-5 text-sky-500" />}
+              </div>
+              <div className="text-left">
+                <p className="text-white font-bold Oswald uppercase text-sm">Enviar aos Jogadores</p>
+                <p className="text-[10px] text-brand-silver Oswald uppercase font-medium">Direto no grupo dos jogadores</p>
+              </div>
+            </Button>
+
             <Button variant="outline" className="w-full h-16 justify-start gap-4 border-[#22324A] bg-[#071426]/20 hover:bg-[#071426]/40" onClick={handleCopyText}>
               <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
                 <Copy className="w-5 h-5 text-emerald-500" />

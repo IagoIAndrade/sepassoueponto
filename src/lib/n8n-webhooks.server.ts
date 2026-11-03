@@ -169,6 +169,32 @@ export async function notifyMainListFullForRegistration(registrationId: string) 
   await notifyMainListFull(reg?.event_id);
 }
 
+export type TeamsTarget = "organizadores" | "jogadores";
+
+// Envia a formação de times para o n8n. "organizadores" abre a validação
+// (o n8n pede aprovação e, se aprovado, repassa aos jogadores); "jogadores"
+// envia direto para o grupo dos jogadores. Ao contrário dos avisos automáticos,
+// aqui o erro é repassado para o admin ver na tela.
+export async function sendTeams(params: {
+  target: TeamsTarget;
+  eventId: string;
+  teams: { numero: number; jogadores: { nome: string }[] }[];
+}) {
+  const url =
+    params.target === "organizadores"
+      ? process.env.N8N_WEBHOOK_TIMES_ORGANIZADORES_URL
+      : process.env.N8N_WEBHOOK_TIMES_JOGADORES_URL;
+  if (!url) throw new Error("Envio para o WhatsApp não configurado no servidor.");
+
+  const loaded = await loadEvent(params.eventId);
+  if (!loaded) throw new Error("Rodada não encontrada.");
+
+  await postWebhook(url, params.target === "organizadores" ? "times_organizadores" : "times_jogadores", {
+    ...roundPayload(loaded.event, loaded.groupName, loaded.eventName),
+    times: params.teams.filter((t) => t.jogadores.length > 0),
+  });
+}
+
 // Avisa o grupo sempre que um nome sai da lista (pelo próprio jogador ou pelo
 // admin, dentro ou fora do prazo). Usa o registro gravado pelo banco em
 // registration_withdrawals no momento do cancelamento.

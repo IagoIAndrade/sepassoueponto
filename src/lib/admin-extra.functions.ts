@@ -274,6 +274,23 @@ export const admin_auto_enroll_organizers = createServerFn({ method: "POST" })
     };
   });
 
+export const admin_send_teams_whatsapp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => z.object({
+    event_id: z.string().uuid(),
+    target: z.enum(["organizadores", "jogadores"]),
+    teams: z.array(z.object({
+      numero: z.number().int().positive(),
+      jogadores: z.array(z.object({ nome: z.string().trim().min(1).max(120) })).max(30),
+    })).min(1).max(10),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { sendTeams } = await import("./n8n-webhooks.server");
+    await sendTeams({ target: data.target, eventId: data.event_id, teams: data.teams });
+    return { ok: true };
+  });
+
 export const admin_move_registration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d: unknown) => z.object({

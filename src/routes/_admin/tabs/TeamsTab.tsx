@@ -809,6 +809,7 @@ export function TeamsTab() {
         teams={teams}
         groupName={event?.settings?.event_name || undefined}
         eventDate={event?.event?.event_date || undefined}
+        eventId={event?.event?.id || undefined}
       />
 
       <PlayerPhotoModal

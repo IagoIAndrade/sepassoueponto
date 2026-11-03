@@ -1,0 +1,250 @@
+{
+  "name": "Se Passou é Ponto - Times para os jogadores",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sepassoueponto-times-jogadores",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "e3671682-886a-4333-8ae5-550dd01b5c6a",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "7000da7f-78de-48c7-b397-90709e3ecb62"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ba39e157-676c-4473-84d4-b3e4244a60e3",
+              "name": "webhook_secret",
+              "value": "COLE_AQUI_O_N8N_WEBHOOK_SECRET_DO_.ENV",
+              "type": "string"
+            },
+            {
+              "id": "211f5e46-1bcd-42d4-90ae-704ba9721dc6",
+              "name": "evolution_url",
+              "value": "https://SUA-EVOLUTION-API.com",
+              "type": "string"
+            },
+            {
+              "id": "897f591f-ac6f-4515-8ec7-becb5be43055",
+              "name": "evolution_instance",
+              "value": "NOME_DA_INSTANCIA",
+              "type": "string"
+            },
+            {
+              "id": "80476f2d-1cd2-4f5f-8330-482e1d7543e9",
+              "name": "evolution_apikey",
+              "value": "SUA_API_KEY",
+              "type": "string"
+            },
+            {
+              "id": "924858a9-a59b-463b-979a-70f0692fd8a3",
+              "name": "grupo_jogadores_jid",
+              "value": "120363000000000002@g.us",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "da1722e5-82e0-4693-8b47-69129edd1be2",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "50ffa714-fa0f-4f45-a912-1cfd2c8c271d",
+              "leftValue": "={{ $('Webhook').item.json.headers['x-webhook-secret'] }}",
+              "rightValue": "={{ $json.webhook_secret }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5e41cde3-68eb-4ef6-8f32-703289775d12",
+      "name": "Segredo válido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: true } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "f1c82d1d-d636-4f87-befb-eb1a88016b4e",
+      "name": "Responder 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: false, error: 'unauthorized' } }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "4fb10e55-c709-42b5-abe4-e79c6d7442e5",
+      "name": "Responder 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $('Webhook').first().json.body || {};\nconst r = body.rodada || {};\nconst turma = (r.turma || 'TURMA').toUpperCase();\nconst data = r.data ? new Date(r.data + 'T12:00:00Z').toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '';\nconst blocos = (body.times || []).map((t) =>\n  '*TIME ' + t.numero + '*\\n' + (t.jogadores || []).map((j, i) => (i + 1) + '. ' + String(j.nome).toUpperCase()).join('\\n')\n);\nconst listaTimes = blocos.join('\\n\\n');\n\nconst texto = '🏐 *SE PASSOU, É PONTO*\\n\\n*TIMES — ' + turma + '*\\n📅 ' + data + '\\n\\n' + listaTimes;\nreturn [{ json: { mensagem: texto } }];"
+      },
+      "id": "51a536ab-4573-46ad-95b4-a2ee34cde668",
+      "name": "Montar mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').first().json.evolution_url }}/message/sendText/{{ $('Config').first().json.evolution_instance }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $('Config').first().json.evolution_apikey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ number: $('Config').first().json.grupo_jogadores_jid, text: $json.mensagem, linkPreview: false }) }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "5802ce95-365f-46b6-a77d-2174d5106c76",
+      "name": "Enviar aos jogadores",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        -100
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Segredo válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Segredo válido?": {
+      "main": [
+        [
+          {
+            "node": "Responder 200",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder 401",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder 200": {
+      "main": [
+        [
+          {
+            "node": "Montar mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar mensagem": {
+      "main": [
+        [
+          {
+            "node": "Enviar aos jogadores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "active": false
+}
