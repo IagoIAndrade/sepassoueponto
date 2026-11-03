@@ -803,7 +803,8 @@ export const admin_remove = createServerFn({ method: "POST" })
       throw new Error(rpcError.message || "Erro ao processar remoção no banco de dados.");
     }
 
-    const { notifyMainListFull } = await import("./n8n-webhooks.server");
+    const { notifyMainListFull, notifyWithdrawal } = await import("./n8n-webhooks.server");
+    await notifyWithdrawal(data.registration_id);
     await notifyMainListFull(removedReg?.event_id);
 
     return { ok: true, result: res };

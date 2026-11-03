@@ -169,42 +169,51 @@ export async function notifyMainListFullForRegistration(registrationId: string) 
   await notifyMainListFull(reg?.event_id);
 }
 
-// Avisa o grupo quando um jogador confirma a saída depois do prazo.
-export async function notifyLateLeave(params: {
-  eventId: string;
-  playerId: string;
-  since: string;
-}) {
+// Avisa o grupo sempre que um nome sai da lista (pelo próprio jogador ou pelo
+// admin, dentro ou fora do prazo). Usa o registro gravado pelo banco em
+// registration_withdrawals no momento do cancelamento.
+export async function notifyWithdrawal(registrationId: string | null | undefined) {
   const url = process.env.N8N_WEBHOOK_SAIDA_TARDIA_URL;
-  if (!url) return;
+  if (!url || !registrationId) return;
 
   try {
-    // O incidente só é criado quando a saída foi de fato fora do prazo.
-    const { data: incident } = await supabaseAdmin
-      .from("player_incidents")
-      .select("occurred_at, suggested_rounds, withdrawal_note")
-      .match({ player_id: params.playerId, event_id: params.eventId, incident_type: "late_leave" })
-      .gte("occurred_at", params.since)
+    const { data: withdrawal } = await supabaseAdmin
+      .from("registration_withdrawals")
+      .select("event_id, player_id, player_name_snapshot, removed_at, removal_source, deadline_status, list_type_snapshot, withdrawal_note, metadata")
+      .eq("registration_id", registrationId)
+      .order("removed_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
-    if (!incident) return;
+    if (!withdrawal) return;
 
-    const loaded = await loadEvent(params.eventId);
+    const loaded = await loadEvent(withdrawal.event_id);
     if (!loaded) return;
 
-    const { data: player } = await supabaseAdmin
-      .from("players")
-      .select("name")
-      .eq("id", params.playerId)
-      .maybeSingle();
+    const late = withdrawal.deadline_status === "late";
 
-    await postWebhook(url, "saida_tardia", {
-      ...roundPayload(loaded.event, loaded.groupName),
-      jogador: player?.name ?? "",
-      saiu_em: incident.occurred_at,
-      justificativa: (incident as any).withdrawal_note ?? null,
-      rodadas_bloqueio: incident.suggested_rounds,
+    // Penalidade registrada para esta saída (só existe quando foi fora do prazo).
+    const { data: incident } = late
+      ? await supabaseAdmin
+          .from("player_incidents")
+          .select("suggested_rounds")
+          .match({ player_id: withdrawal.player_id, event_id: withdrawal.event_id, incident_type: "late_leave" })
+          .order("occurred_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      : { data: null };
+
+    await postWebhook(url, "saida_lista", {
+      ...roundPayload(loaded.event, loaded.groupName, loaded.eventName),
+      jogador: withdrawal.player_name_snapshot,
+      saiu_em: withdrawal.removed_at,
+      fora_do_prazo: late,
+      prazo: (withdrawal.metadata as any)?.deadline_at_snapshot ?? null,
+      removido_por: withdrawal.removal_source === "admin" ? "admin" : "jogador",
+      lista: withdrawal.list_type_snapshot === "main" ? "titular" : "reserva",
+      justificativa: withdrawal.withdrawal_note ?? null,
+      rodadas_bloqueio: incident?.suggested_rounds ?? 0,
     });
   } catch (e) {
-    console.error("[N8N] Falha ao avisar saída tardia:", { event_id: params.eventId, error: String(e) });
+    console.error("[N8N] Falha ao avisar saída da lista:", { registration_id: registrationId, error: String(e) });
   }
 }

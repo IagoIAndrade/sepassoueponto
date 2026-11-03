@@ -8,7 +8,7 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "f8537420-ba71-4f0e-9981-d4c7e27c2790",
+      "id": "18d7e0c9-ee72-4444-b0a7-d3966b1f0f53",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
@@ -16,38 +16,38 @@
         0,
         0
       ],
-      "webhookId": "ddec839b-b0f0-427d-879d-df5906b9b218"
+      "webhookId": "023f24c5-4039-4011-9166-26ed031f3a82"
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "2d39a252-7d58-41a2-87dc-91f17d687b4e",
+              "id": "6f621cbb-c440-4a58-8ee2-7326c8b9cec4",
               "name": "webhook_secret",
               "value": "COLE_AQUI_O_N8N_WEBHOOK_SECRET_DO_.ENV",
               "type": "string"
             },
             {
-              "id": "5bbc8484-c986-461d-9747-ca0268ce56a7",
+              "id": "d3b1a019-cb6d-483d-822b-527b59e04b3c",
               "name": "evolution_url",
               "value": "https://SUA-EVOLUTION-API.com",
               "type": "string"
             },
             {
-              "id": "425a2a0f-ddcf-45d2-ae5b-d01ba94c5415",
+              "id": "79c09996-6754-4986-9523-dec719e4bdf7",
               "name": "evolution_instance",
               "value": "NOME_DA_INSTANCIA",
               "type": "string"
             },
             {
-              "id": "68e5637f-0f27-496b-873d-e8121f1cfc43",
+              "id": "7eeaf6a9-0dd1-43cc-9ede-47d4abeca639",
               "name": "evolution_apikey",
               "value": "SUA_API_KEY",
               "type": "string"
             },
             {
-              "id": "224e1adc-2f91-4e83-bcd1-199d341fc4ee",
+              "id": "24f47377-e48f-4e55-9adc-be267c33d3bd",
               "name": "grupo_jid",
               "value": "120363000000000000@g.us",
               "type": "string"
@@ -56,7 +56,7 @@
         },
         "options": {}
       },
-      "id": "3af18cbb-0660-4bb2-b8c8-9bae4214941d",
+      "id": "88b407c9-b022-40f8-99b0-ff76cc0bb52b",
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -76,7 +76,7 @@
           },
           "conditions": [
             {
-              "id": "f33193d1-6041-4925-aafd-f2d1afc8890f",
+              "id": "d61dc4b3-ef02-4df2-8af3-7959f6fd4c23",
               "leftValue": "={{ $('Webhook').item.json.headers['x-webhook-secret'] }}",
               "rightValue": "={{ $json.webhook_secret }}",
               "operator": {
@@ -89,7 +89,7 @@
         },
         "options": {}
       },
-      "id": "50e493e3-0ed7-4d22-bcb5-ab441b6c7222",
+      "id": "d5a7b598-7c25-4876-bb94-fd324eda257f",
       "name": "Segredo válido?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -106,7 +106,7 @@
           "responseCode": 200
         }
       },
-      "id": "21c36b95-a1fa-4d56-961f-5547a26a7016",
+      "id": "3064bc39-d7bf-4076-acf7-a99d27da6d76",
       "name": "Responder 200",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
@@ -123,7 +123,7 @@
           "responseCode": 401
         }
       },
-      "id": "ae759c20-1f78-43ab-8d71-4e6ea83c346d",
+      "id": "f1f8a63f-a816-4f59-821d-4be17b3b4cbb",
       "name": "Responder 401",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
@@ -134,9 +134,9 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $('Webhook').first().json.body || {};\nconst r = body.rodada || {};\nconst tz = 'America/Sao_Paulo';\nconst dataRodada = r.data\n  ? new Date(r.data + 'T12:00:00Z').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', timeZone: 'UTC' })\n  : '';\nconst horario = [r.horario_inicio, r.horario_fim].filter(Boolean).join(' às ');\n\nconst saiuEm = body.saiu_em\n  ? new Date(body.saiu_em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: tz })\n  : '';\nconst justificativa = (body.justificativa || '').trim();\nconst rodadas = Number(body.rodadas_bloqueio || 0);\n\nconst linhas = [\n  '⚠️ *Saída após o prazo* ' + (r.turma ? '— ' + r.turma : ''),\n  '',\n  '👤 *' + body.jogador + '* saiu da lista' + (saiuEm ? ' em ' + saiuEm : ''),\n  '📅 Rodada: ' + dataRodada + (horario ? ' · ' + horario : ''),\n  '📝 Justificativa: ' + (justificativa ? '\"' + justificativa + '\"' : 'não informada'),\n  rodadas > 0 ? '🚫 Penalidade: ' + rodadas + (rodadas === 1 ? ' rodada' : ' rodadas') + ' sem jogar' : null,\n].filter((l) => l !== null);\n\nreturn [{ json: { mensagem: linhas.join('\\n') } }];"
+        "jsCode": "const body = $('Webhook').first().json.body || {};\nconst r = body.rodada || {};\nconst tz = 'America/Sao_Paulo';\nconst dataRodada = r.data\n  ? new Date(r.data + 'T12:00:00Z').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', timeZone: 'UTC' })\n  : '';\nconst horario = [r.horario_inicio, r.horario_fim].filter(Boolean).join(' às ');\n\nconst saiuEm = body.saiu_em\n  ? new Date(body.saiu_em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: tz })\n  : '';\nconst justificativa = (body.justificativa || '').trim();\nconst rodadas = Number(body.rodadas_bloqueio || 0);\n\n// Saídas antigas (evento \"saida_tardia\") eram sempre fora do prazo.\nconst foraDoPrazo = body.evento === 'saida_tardia' || body.fora_do_prazo === true;\n\nconst linhas = [\n  (foraDoPrazo ? '⚠️ *Saída após o prazo* ' : '🚪 *Saída da lista* ') + (r.turma ? '— ' + r.turma : ''),\n  '',\n  '👤 *' + body.jogador + '*' + (body.lista ? ' (' + body.lista + ')' : '') + ' saiu da lista' + (saiuEm ? ' em ' + saiuEm : ''),\n  body.removido_por === 'admin' ? '🛠️ Nome retirado pelo admin' : '🙋 Saiu pelo próprio app',\n  foraDoPrazo ? '⏰ *Fora do prazo*' : '⏰ Dentro do prazo',\n  '📅 Rodada: ' + dataRodada + (horario ? ' · ' + horario : ''),\n  '📝 Justificativa: ' + (justificativa ? '\"' + justificativa + '\"' : 'não informada'),\n  rodadas > 0 ? '🚫 Penalidade: ' + rodadas + (rodadas === 1 ? ' rodada' : ' rodadas') + ' sem jogar' : null,\n].filter((l) => l !== null);\n\nreturn [{ json: { mensagem: linhas.join('\\n') } }];"
       },
-      "id": "7c6a5a03-ed31-4ffa-82aa-ceb0bcefa6e6",
+      "id": "a0251ba3-737e-466e-9ef9-d6c74af98c0c",
       "name": "Montar mensagem",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -165,7 +165,7 @@
           "timeout": 15000
         }
       },
-      "id": "0cbb2ba1-1868-45dd-a4fe-ee1b99cfb977",
+      "id": "a3a81f48-aef9-4320-85e7-fc8a29f53ab0",
       "name": "Enviar para o grupo (Evolution API)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
