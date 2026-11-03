@@ -1218,6 +1218,21 @@ export const admin_save_teams = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// Envia a formação salva dos times para o grupo do WhatsApp (via n8n).
+const sendTeamsToGroupSchema = z.object({
+  event_id: z.string().uuid(),
+  force: z.boolean().optional(),
+});
+
+export const admin_send_teams_to_group = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((r: unknown) => sendTeamsToGroupSchema.parse(r))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { notifyTeamsDrawn } = await import("./n8n-webhooks.server");
+    return notifyTeamsDrawn(data.event_id, { force: data.force });
+  });
+
 // --- settings ------------------------------------------------------------
 
 // updateSettingsSchema já declarado no topo do arquivo

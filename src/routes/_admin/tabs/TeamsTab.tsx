@@ -21,11 +21,12 @@ import {
   X,
   History,
   Calendar,
-  MoreHorizontal
+  MoreHorizontal,
+  Send
 } from "lucide-react";
 import { TeamShareDialog } from "@/components/TeamShareDialog";
 import { useAdminGroup } from "@/lib/admin-group-context";
-import { get_admin_event, admin_save_teams } from "@/lib/admin.functions";
+import { get_admin_event, admin_save_teams, admin_send_teams_to_group } from "@/lib/admin.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -94,6 +95,7 @@ export function TeamsTab() {
   const { groupId } = useAdminGroup();
   const getEvent = useServerFn(get_admin_event);
   const saveTeamsFn = useServerFn(admin_save_teams);
+  const sendTeamsToGroupFn = useServerFn(admin_send_teams_to_group);
   const [selectedPlayerPhoto, setSelectedPlayerPhoto] = useState<{ id: string; name: string; avatar_path?: string | null; phone?: string | null; group_name?: string | null; position?: string | null } | null>(null);
   
   const [availablePlayers, setAvailablePlayers] = useState<PlayerData[]>([]);
@@ -112,6 +114,8 @@ export function TeamsTab() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [sendGroupConfirmOpen, setSendGroupConfirmOpen] = useState(false);
+  const [sendingToGroup, setSendingToGroup] = useState(false);
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
 
   const [lastState, setLastState] = useState<{available: PlayerData[], reserves: PlayerData[], teams: TeamData[]} | null>(null);
@@ -491,6 +495,36 @@ export function TeamsTab() {
     setClearConfirmOpen(false);
   };
 
+  // Envia a formação já salva para o grupo do WhatsApp (n8n).
+  const handleSendToGroup = async (force = false) => {
+    const eventId = event?.event?.id;
+    if (!eventId) return;
+    if (isDirty || autosaveStatus !== 'saved') {
+      toast.error("Aguarde salvar os times antes de enviar para o grupo.");
+      return;
+    }
+    setSendingToGroup(true);
+    try {
+      const result = await sendTeamsToGroupFn({ data: { event_id: eventId, force } });
+      setSendGroupConfirmOpen(false);
+      if (result.status === "sent") {
+        toast.success(result.atualizacao ? "Times atualizados enviados para o grupo." : "Times enviados para o grupo do WhatsApp.");
+      } else if (result.status === "unchanged") {
+        toast.info("Esses times já foram enviados para o grupo.", {
+          action: { label: "Reenviar", onClick: () => handleSendToGroup(true) },
+        });
+      } else if (result.status === "no_teams") {
+        toast.error("Nenhum time salvo para enviar.");
+      } else {
+        toast.error("Envio para o grupo não configurado (N8N_WEBHOOK_TIMES_URL).");
+      }
+    } catch (e) {
+      toast.error(friendlyError(e));
+    } finally {
+      setSendingToGroup(false);
+    }
+  };
+
   const handleShare = () => {
     setShareDialogOpen(true);
   };
@@ -586,6 +620,14 @@ export function TeamsTab() {
               className="h-9 px-3 text-[10px] border-pink-500/30 dark:border-brand-gold/30 text-pink-600 dark:text-brand-gold hover:bg-pink-50 dark:hover:bg-brand-gold/10 font-bold Oswald uppercase flex items-center gap-1.5 shadow-sm dark:shadow-lg dark:shadow-brand-gold/5"
             >
               <Share2 className="w-3.5 h-3.5" /> Compartilhar
+            </Button>
+
+            <Button size="sm" onClick={() => setSendGroupConfirmOpen(true)} variant="outline"
+              disabled={teams.every(t => t.players.length === 0) || isDirty || autosaveStatus !== 'saved' || sendingToGroup}
+              title={isDirty || autosaveStatus !== 'saved' ? "Aguarde salvar os times" : "Enviar os times para o grupo do WhatsApp"}
+              className="h-9 px-3 text-[10px] border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 font-bold Oswald uppercase flex items-center gap-1.5 shadow-sm"
+            >
+              <Send className="w-3.5 h-3.5" /> Enviar no grupo
             </Button>
 
             <DropdownMenu>
@@ -802,6 +844,18 @@ export function TeamsTab() {
         title={`Limpar times? - ${((event?.settings as any)?.group?.name || "TURMA").toUpperCase()}`}
         description={`Todos os jogadores voltarão para a lista de disponíveis nesta rodada. A formação salva será perdida ao clicar em Salvar depois.`}
         onConfirm={handleClear}
+      />
+      <AppConfirmDialog
+        open={sendGroupConfirmOpen}
+        onOpenChange={setSendGroupConfirmOpen}
+        title="Enviar times no grupo do WhatsApp?"
+        description={`A formação salva será enviada para o grupo: ${teams
+          .filter(t => t.players.length > 0)
+          .map(t => `Time ${t.team_number} (${t.players.length})`)
+          .join(" · ")}. Se os times já foram enviados e mudaram, a mensagem sai como "times atualizados".`}
+        confirmText="Enviar"
+        isLoading={sendingToGroup}
+        onConfirm={() => handleSendToGroup(false)}
       />
       <TeamShareDialog 
         open={shareDialogOpen} 

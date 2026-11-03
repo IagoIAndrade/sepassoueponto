@@ -217,3 +217,124 @@ export async function notifyWithdrawal(registrationId: string | null | undefined
     console.error("[N8N] Falha ao avisar saída da lista:", { registration_id: registrationId, error: String(e) });
   }
 }
+
+export type TeamsDispatchResult =
+  | { status: "sent"; atualizacao: boolean }
+  | { status: "unchanged" }
+  | { status: "not_configured" }
+  | { status: "no_teams" };
+
+type TeamSnapshotEntry = { id: string; nome: string; time: number };
+
+// Envia os times sorteados para o grupo do WhatsApp. Diferente dos avisos
+// automáticos, é disparado pelo admin (botão na aba Times) e o resultado volta
+// para a tela: erros de envio são lançados para o admin ver. Os times são lidos
+// do banco (formação salva), nunca do navegador. Um novo clique com a mesma
+// formação não reenvia, a não ser que `force` seja usado; se a formação mudou,
+// a mensagem sai como "times atualizados" com quem trocou de time.
+export async function notifyTeamsDrawn(eventId: string, opts: { force?: boolean } = {}): Promise<TeamsDispatchResult> {
+  const url = process.env.N8N_WEBHOOK_TIMES_URL;
+  if (!url) return { status: "not_configured" };
+
+  const loaded = await loadEvent(eventId);
+  if (!loaded) throw new Error("event_not_found");
+  const { event, groupName, eventName } = loaded;
+
+  const { data: rawTeams, error: teamsError } = await supabaseAdmin
+    .from("teams")
+    .select("team_number, team_members(registration_id)")
+    .eq("event_id", eventId)
+    .order("team_number");
+  if (teamsError) throw teamsError;
+
+  const { data: regs, error: regsError } = await supabaseAdmin.rpc("get_public_registrations", {
+    p_event_id: eventId,
+  });
+  if (regsError) throw regsError;
+  const regMap = new Map((regs ?? []).map((r: any) => [r.id, r]));
+  const name = (r: { player_name: string | null }) => (r.player_name || "Sem nome").trim().replace(/\s+/g, " ");
+
+  const teams = (rawTeams ?? [])
+    .map((t: any) => ({
+      numero: t.team_number as number,
+      // Inscrições canceladas depois do sorteio não aparecem na mensagem.
+      // Ordem alfabética: a formação salva não guarda ordem dentro do time.
+      membros: (((t.team_members ?? []) as any[])
+        .map((m) => regMap.get(m.registration_id))
+        .filter(Boolean) as any[])
+        .sort((a, b) => name(a).localeCompare(name(b), "pt-BR")),
+    }))
+    .filter((t) => t.membros.length > 0);
+  if (!teams.length) return { status: "no_teams" };
+
+  const snapshot: TeamSnapshotEntry[] = teams.flatMap((t) =>
+    t.membros.map((r) => ({ id: r.id as string, nome: name(r), time: t.numero })),
+  );
+  const signature = snapshot.map((s) => `${s.id}:${s.time}`).sort().join(",");
+
+  const dispatches = () => (supabaseAdmin as any).from("n8n_webhook_dispatches");
+  const key = { event_id: eventId, kind: "times_sorteados" };
+
+  const { data: prev } = await dispatches().select("signature, snapshot").match(key).maybeSingle();
+  if (prev?.signature === signature && !opts.force) return { status: "unchanged" };
+
+  // Reserva o disparo para que dois cliques simultâneos não mandem duas mensagens.
+  if (!prev) {
+    const { error: claimError } = await dispatches().insert({ ...key, signature, snapshot });
+    if (claimError) return { status: "unchanged" };
+  } else {
+    let claim = dispatches()
+      .update({ signature, snapshot, sent_at: new Date().toISOString() })
+      .match(key);
+    claim = prev.signature === null ? claim.is("signature", null) : claim.eq("signature", prev.signature);
+    const { data: claimed } = await claim.select("event_id");
+    if (!claimed?.length) return { status: "unchanged" };
+  }
+
+  const prevSnapshot: TeamSnapshotEntry[] = prev?.snapshot ?? [];
+  const prevTeamById = new Map(prevSnapshot.map((s) => [s.id, s.time]));
+  const currentTeamById = new Map(snapshot.map((s) => [s.id, s.time]));
+  const isUpdate = !!prev && prev.signature !== signature;
+
+  const mudancas = isUpdate
+    ? [
+        ...snapshot
+          .filter((s) => prevTeamById.get(s.id) !== s.time)
+          .map((s) => ({ nome: s.nome, de: prevTeamById.get(s.id) ?? null, para: s.time })),
+        ...prevSnapshot
+          .filter((s) => !currentTeamById.has(s.id))
+          .map((s) => ({ nome: s.nome, de: s.time, para: null })),
+      ]
+    : [];
+
+  try {
+    await postWebhook(url, "times_sorteados", {
+      ...roundPayload(event, groupName, eventName),
+      atualizacao: isUpdate,
+      reenvio: !!prev && !isUpdate,
+      total_jogadores: snapshot.length,
+      mudancas,
+      times: teams.map((t) => ({
+        numero: t.numero,
+        total: t.membros.length,
+        jogadores: t.membros.map((r, i) => ({
+          posicao: i + 1,
+          nome: name(r),
+          convidado: !!r.is_guest,
+          novo: isUpdate && prevTeamById.get(r.id) !== t.numero,
+        })),
+      })),
+    });
+  } catch (sendError) {
+    // Desfaz a reserva para que o admin possa tentar de novo.
+    if (prev) {
+      await dispatches().update({ signature: prev.signature, snapshot: prev.snapshot }).match(key).eq("signature", signature);
+    } else {
+      await dispatches().delete().match(key).eq("signature", signature);
+    }
+    console.error("[N8N] Falha ao enviar times sorteados:", { event_id: eventId, error: String(sendError) });
+    throw new Error("webhook_failed");
+  }
+
+  return { status: "sent", atualizacao: isUpdate };
+}
