@@ -26,6 +26,7 @@ const MAP: Record<string, string> = {
   not_authorized: "Você não pode alterar esta inscrição.",
   invalid_block_range: "Período de bloqueio inválido.",
   signup_failed: "Não foi possível criar o cadastro. Tente novamente.",
+  webhook_failed: "Não foi possível enviar a mensagem para o grupo. Tente novamente.",
   ALREADY_REGISTERED: "Este WhatsApp já possui cadastro. Acesse pela opção 'Já tenho cadastro'.",
   PHOTO_REQUIRED: "A foto é obrigatória para o cadastro.",
   INVALID_PHONE: "WhatsApp inválido. Informe DDD + número (11 dígitos).",
