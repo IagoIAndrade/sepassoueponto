@@ -134,7 +134,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $('Webhook').first().json.body || {};\nconst r = body.rodada || {};\nconst tz = 'America/Sao_Paulo';\nconst dataRodada = r.data\n  ? new Date(r.data + 'T12:00:00Z').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', timeZone: 'UTC' })\n  : '';\nconst horario = [r.horario_inicio, r.horario_fim].filter(Boolean).join(' às ');\n\nconst saiuEm = body.saiu_em\n  ? new Date(body.saiu_em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: tz })\n  : '';\nconst justificativa = (body.justificativa || '').trim();\nconst rodadas = Number(body.rodadas_bloqueio || 0);\n\n// Saídas antigas (evento \"saida_tardia\") eram sempre fora do prazo.\nconst foraDoPrazo = body.evento === 'saida_tardia' || body.fora_do_prazo === true;\n\nconst linhas = [\n  (foraDoPrazo ? '⚠️ *Saída após o prazo* ' : '🚪 *Saída da lista* ') + (r.turma ? '— ' + r.turma : ''),\n  '',\n  '👤 *' + body.jogador + '*' + (body.lista ? ' (' + body.lista + ')' : '') + ' saiu da lista' + (saiuEm ? ' em ' + saiuEm : ''),\n  body.removido_por === 'admin' ? '🛠️ Nome retirado pelo admin' : '🙋 Saiu pelo próprio app',\n  foraDoPrazo ? '⏰ *Fora do prazo*' : '⏰ Dentro do prazo',\n  '📅 Rodada: ' + dataRodada + (horario ? ' · ' + horario : ''),\n  '📝 Justificativa: ' + (justificativa ? '\"' + justificativa + '\"' : 'não informada'),\n  rodadas > 0 ? '🚫 Penalidade: ' + rodadas + (rodadas === 1 ? ' rodada' : ' rodadas') + ' sem jogar' : null,\n].filter((l) => l !== null);\n\nreturn [{ json: { mensagem: linhas.join('\\n') } }];"
+        "jsCode": "const body = $('Webhook').first().json.body || {};\nconst r = body.rodada || {};\nconst tz = 'America/Sao_Paulo';\nconst dataRodada = r.data\n  ? new Date(r.data + 'T12:00:00Z').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', timeZone: 'UTC' })\n  : '';\nconst horario = [r.horario_inicio, r.horario_fim].filter(Boolean).join(' às ');\n\nconst saiuEm = body.saiu_em\n  ? new Date(body.saiu_em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: tz })\n  : '';\nconst justificativa = (body.justificativa || '').trim();\nconst rodadas = Number(body.rodadas_bloqueio || 0);\n\n// Saídas antigas (evento \"saida_tardia\") eram sempre fora do prazo.\nconst foraDoPrazo = body.evento === 'saida_tardia' || body.fora_do_prazo === true;\n\nconst linhas = [\n  (foraDoPrazo ? '⚠️ *Saída após o prazo* ' : '🚪 *Saída da lista* ') + (r.turma ? '— ' + r.turma : ''),\n  '',\n  '👤 *' + body.jogador + '*' + (body.lista ? ' (' + body.lista + ')' : '') + ' saiu da lista' + (saiuEm ? ' em ' + saiuEm : ''),\n  body.removido_por === 'admin' ? '🛠️ Nome retirado pelo admin' : '🙋 Saiu pelo próprio app',\n  foraDoPrazo ? '⏰ *Fora do prazo*' : '⏰ Dentro do prazo',\n  '📅 Rodada: ' + dataRodada + (horario ? ' · ' + horario : ''),\n  '📝 Justificativa: ' + (justificativa ? '\"' + justificativa + '\"' : 'não informada'),\n  rodadas > 0 ? '🚫 Penalidade: ' + rodadas + (rodadas === 1 ? ' rodada' : ' rodadas') + ' sem jogar' : null,\n].filter((l) => l !== null);\n\nconst fmtData = (iso) => new Date(iso + 'T12:00:00Z').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', timeZone: 'UTC' });\nconst datas = (body.datas_possivel_bloqueio || []).map(fmtData);\nif (datas.length) linhas.push('', '📆 *Possíveis datas de bloqueio* (a justificativa será avaliada):', ...datas.map((x) => '• ' + x));\n\nlet privada = null;\nlet telefone = body.jogador_telefone || null;\nif (body.convidado) {\n  // Convidado: avisa quem o inseriu na lista (convidado não gera bloqueio).\n  telefone = body.convidado_por_telefone || null;\n  privada = [\n    '🚪 Olá' + (body.convidado_por ? ', ' + body.convidado_por : '') + '! Seu convidado *' + body.jogador + '* foi retirado da lista' + (r.turma ? ' de ' + r.turma : '') + '.',\n    '',\n    '📅 Rodada: ' + dataRodada + (horario ? ' · ' + horario : ''),\n    body.removido_por === 'admin' ? '🛠️ Retirado pelo admin' : '🙋 Retirado pelo app',\n    justificativa ? '📝 Observação: \"' + justificativa + '\"' : null,\n  ].filter((l) => l !== null).join('\\n');\n} else if (foraDoPrazo && telefone) {\n  const p = [\n    '⚠️ Olá, ' + body.jogador + '! Você saiu da lista' + (r.turma ? ' de ' + r.turma : '') + ' após o prazo (rodada de ' + dataRodada + ').',\n    '',\n    justificativa ? '📝 Sua justificativa: \"' + justificativa + '\"' : '📝 Nenhuma justificativa foi informada.',\n    '',\n    'Sua justificativa será avaliada pelos organizadores para decidir se haverá bloqueio ou não.',\n  ];\n  if (datas.length) p.push('', '📆 Datas em que você pode ficar bloqueado:', ...datas.map((x) => '• ' + x));\n  privada = p.join('\\n');\n}\n\nreturn [{ json: { mensagem: linhas.join('\\n'), mensagem_privada: privada, telefone } }];"
       },
       "id": "a0251ba3-737e-466e-9ef9-d6c74af98c0c",
       "name": "Montar mensagem",
@@ -172,6 +172,82 @@
       "position": [
         1100,
         -100
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bc8d0ece-2899-4275-8e0e-c4905d499b38",
+              "leftValue": "={{ $json.mensagem_privada }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "f75d6a28-bce1-4402-bf8f-da0f532b096d",
+              "leftValue": "={{ $json.telefone }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d1520683-cd0d-49fe-a9f3-f24088c993de",
+      "name": "Avisar jogador?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').item.json.evolution_url }}/message/sendText/{{ $('Config').item.json.evolution_instance }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $('Config').item.json.evolution_apikey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ number: $json.telefone, text: $json.mensagem_privada }) }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "bd9d86c0-991c-4703-a601-1cba67be4b68",
+      "name": "Enviar para o jogador (Evolution API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        100
       ],
       "retryOnFail": true,
       "maxTries": 3,
@@ -237,8 +313,25 @@
             "node": "Enviar para o grupo (Evolution API)",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Avisar jogador?",
+            "type": "main",
+            "index": 0
           }
         ]
+      ]
+    },
+    "Avisar jogador?": {
+      "main": [
+        [
+          {
+            "node": "Enviar para o jogador (Evolution API)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
       ]
     }
   },

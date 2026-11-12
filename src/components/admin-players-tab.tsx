@@ -133,7 +133,7 @@ export function PlayersTab() {
       <DropdownMenuContent align="end" className="bg-brand-surface border-brand-border text-brand-white min-w-[14rem] p-1">
         <DropdownMenuGroup>
           <div className="px-2 py-1.5 text-[10px] font-bold text-brand-silver/50 uppercase tracking-widest">Dados do Jogador</div>
-          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setSelectedPlayer(p); setIsDrawerOpen(true); }} className="text-sm cursor-pointer hover:bg-white/5">
+          <DropdownMenuItem onClick={(e) => e.stopPropagation()} onSelect={() => { setSelectedPlayer(p); setTimeout(() => setIsDrawerOpen(true), 100); }} className="text-sm cursor-pointer hover:bg-white/5">
             <CheckCircle className="w-4 h-4 mr-2 text-brand-gold/70" /> Visualizar perfil
           </DropdownMenuItem>
           <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleUpdateName(p.id, p.name); }} className="text-sm cursor-pointer hover:bg-white/5">
@@ -387,7 +387,7 @@ export function PlayersTab() {
                       )}
                     </div>
                   </div>
-                  <PlayerActionsMenu p={p} />
+                  {PlayerActionsMenu({ p })}
                 </div>
                 <div className="flex justify-between items-center mt-1">
                   <span className="text-[10px] text-brand-silver/50 uppercase font-bold tracking-widest">
@@ -476,7 +476,7 @@ export function PlayersTab() {
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <PlayerActionsMenu p={p} />
+                      {PlayerActionsMenu({ p })}
                     </td>
                   </tr>
                 ))}

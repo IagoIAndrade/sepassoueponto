@@ -228,9 +228,64 @@ export async function notifyWithdrawal(registrationId: string | null | undefined
           .maybeSingle()
       : { data: null };
 
+    // Telefone (login) do jogador para o n8n avisá-lo em privado.
+    const toPhone = (raw: string | null | undefined) => {
+      const d = (raw ?? "").replace(/D/g, "");
+      return d && !d.startsWith("GUEST") ? (d.startsWith("55") ? d : `55${d}`) : null;
+    };
+    const { data: player } = await supabaseAdmin
+      .from("players")
+      .select("phone_normalized, is_guest")
+      .eq("id", withdrawal.player_id)
+      .maybeSingle();
+    const isGuest = !!player?.is_guest || (player?.phone_normalized ?? "").startsWith("GUEST-");
+    const telefone = player && !isGuest ? toPhone(player.phone_normalized) : null;
+
+    // Convidado não tem login: avisa quem o inseriu na lista.
+    let convidadoPorNome: string | null = null;
+    let convidadoPorTelefone: string | null = null;
+    if (isGuest) {
+      const { data: reg } = await supabaseAdmin
+        .from("registrations")
+        .select("registered_by_player_id")
+        .eq("id", registrationId)
+        .maybeSingle();
+      if (reg?.registered_by_player_id) {
+        const { data: inviter } = await supabaseAdmin
+          .from("players")
+          .select("name, phone_normalized")
+          .eq("id", reg.registered_by_player_id)
+          .maybeSingle();
+        convidadoPorNome = inviter?.name ?? null;
+        convidadoPorTelefone = toPhone(inviter?.phone_normalized);
+      }
+    }
+
+    // Datas em que o jogador pode ser bloqueado (criadas junto com a saída tardia;
+    // o admin avalia a justificativa para confirmar ou não o bloqueio).
+    let datasBloqueio: string[] = [];
+    if (late) {
+      const { data: blocks } = await supabaseAdmin
+        .from("player_blocks")
+        .select("starts_at")
+        .match({
+          player_id: withdrawal.player_id,
+          group_id: loaded.event.group_id,
+          reason: `Saída tardia da rodada ${loaded.event.event_date}`,
+          active: true,
+        })
+        .order("starts_at", { ascending: true });
+      datasBloqueio = [...new Set((blocks ?? []).map((b) => String(b.starts_at).slice(0, 10)))];
+    }
+
     await postWebhook(url, "saida_lista", {
       ...roundPayload(loaded.event, loaded.groupName, loaded.eventName),
       jogador: withdrawal.player_name_snapshot,
+      jogador_telefone: telefone,
+      convidado: isGuest,
+      convidado_por: convidadoPorNome,
+      convidado_por_telefone: convidadoPorTelefone,
+      datas_possivel_bloqueio: datasBloqueio,
       saiu_em: withdrawal.removed_at,
       fora_do_prazo: late,
       prazo: (withdrawal.metadata as any)?.deadline_at_snapshot ?? null,
