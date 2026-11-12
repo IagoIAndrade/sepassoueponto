@@ -52,6 +52,49 @@ export const getMyGroupAccesses = createServerFn({ method: "GET" }).handler(
   }
 );
 
+// Instante (UTC) em que a data/hora local do fuso informado acontece.
+function zonedToUtcMs(date: string, time: string, tz: string): number {
+  const [y, mo, d] = date.split("-").map(Number);
+  const [h, mi] = time.split(":").map(Number);
+  const asUtc = Date.UTC(y, mo - 1, d, h, mi);
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
+    }).formatToParts(new Date(asUtc));
+    const g = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+    const shown = Date.UTC(g("year"), g("month") - 1, g("day"), g("hour"), g("minute"));
+    return asUtc - (shown - asUtc);
+  } catch {
+    return asUtc;
+  }
+}
+
+// Turma "da vez": a que tem o jogo que termina primeiro a partir de agora.
+// Ex.: segunda/terça antes do jogo -> terça; terça depois do jogo/quarta -> quarta.
+async function pickDefaultGroupId(groupIds: string[]): Promise<string | null> {
+  if (groupIds.length === 0) return null;
+  const { data: events } = await supabaseAdmin
+    .from("volleyball_events")
+    .select("group_id, event_date, start_time, end_time, timezone, status")
+    .in("group_id", groupIds)
+    .not("status", "in", "(completed,cancelled)")
+    .gte("event_date", new Date(Date.now() - 2 * 86400000).toISOString().slice(0, 10))
+    .order("event_date", { ascending: true });
+
+  const now = Date.now();
+  let best: { groupId: string; end: number } | null = null;
+  for (const e of events ?? []) {
+    const tz = e.timezone || "America/Sao_Paulo";
+    const start = (e.start_time ?? "00:00").slice(0, 5);
+    const endT = (e.end_time ?? start).slice(0, 5);
+    let end = zonedToUtcMs(e.event_date, endT, tz);
+    if (end <= zonedToUtcMs(e.event_date, start, tz)) end += 86400000;
+    if (end < now) continue;
+    if (!best || end < best.end) best = { groupId: e.group_id, end };
+  }
+  return best?.groupId ?? groupIds[0];
+}
+
 export const get_current_event_full = createServerFn({ method: "POST" })
   .validator((d: { group_id?: string | null }) => d)
   .handler(async ({ data }) => {
@@ -67,8 +110,9 @@ export const get_current_event_full = createServerFn({ method: "POST" })
     
     // Se não informou group_id, tenta o primeiro ativo
     let targetGroupId = data?.group_id;
-    if (!targetGroupId && allGroups && allGroups.length > 0) {
-      targetGroupId = allGroups[0].id;
+    const defaultGroupId = await pickDefaultGroupId((allGroups ?? []).map((g) => g.id));
+    if (!targetGroupId && defaultGroupId) {
+      targetGroupId = defaultGroupId;
     }
 
     // 3. Buscar configurações
@@ -93,6 +137,7 @@ export const get_current_event_full = createServerFn({ method: "POST" })
         settings: settings || null, 
         registrations: [], 
         groups: allGroups || [],
+        default_group_id: defaultGroupId,
         teams: [],
         fund_summary: null,
         fund_statuses: [],
@@ -256,6 +301,7 @@ export const get_current_event_full = createServerFn({ method: "POST" })
       event: eventRow, 
       settings: settings || null, 
       groups: allGroups || [],
+      default_group_id: defaultGroupId,
       registrations: mappedRegs,
       registration_counts: {
         main: realClassified.starters.length,

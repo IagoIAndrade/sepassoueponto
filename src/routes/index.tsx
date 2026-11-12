@@ -386,21 +386,17 @@ function Index() {
 
   const groups = (eventQ.data as any)?.groups ?? [];
 
+  // Ao abrir o app, seleciona a turma do próximo jogo (calculada no servidor).
+  // Um ?group= na URL tem prioridade (tratado mais abaixo).
+  const defaultGroupId = (eventQ.data as any)?.default_group_id as string | undefined;
   useEffect(() => {
     if (groups.length > 0 && !activeGroupId) {
-      try {
-        const saved = localStorage.getItem(GROUP_STORAGE_KEY);
-        const exists = groups.some((g: any) => g.id === saved);
-        if (saved && exists) {
-          setActiveGroupId(saved);
-        } else {
-          setActiveGroupId(groups[0].id);
-        }
-      } catch {
-        setActiveGroupId(groups[0].id);
-      }
+      const fromUrl = new URL(window.location.href).searchParams.get("group");
+      if (fromUrl) return;
+      const target = groups.some((g: any) => g.id === defaultGroupId) ? defaultGroupId! : groups[0].id;
+      setActiveGroupId(target);
     }
-  }, [groups, activeGroupId]);
+  }, [groups, activeGroupId, defaultGroupId]);
 
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
