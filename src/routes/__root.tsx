@@ -8,7 +8,7 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { InteractiveTour, type TourStep } from "@/components/InteractiveTour";
 import { usePushNavigation } from "@/hooks/use-push-navigation";
 import { HelpCircle } from "lucide-react";
@@ -17,6 +17,22 @@ import { Button } from "@/components/ui/button";
 import "@/styles.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/ThemeProvider";
+
+// O Vite dispara este evento quando um arquivo de uma tela não carrega (versão antiga em cache).
+if (typeof window !== "undefined") {
+  window.addEventListener("vite:preloadError", (event) => {
+    try {
+      const last = Number(sessionStorage.getItem("spp:chunk-reload") ?? 0);
+      if (Date.now() - last > 30_000) {
+        sessionStorage.setItem("spp:chunk-reload", String(Date.now()));
+        event.preventDefault();
+        window.location.reload();
+      }
+    } catch {
+      /* ignore */
+    }
+  });
+}
 
 function NotFoundComponent() {
   return (
@@ -44,6 +60,25 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   const displayError = error instanceof Error ? error : new Error(String(error));
   console.error("[BOUNDARY ERROR]", error);
   const router = useRouter();
+
+  // Após um novo deploy, os arquivos antigos (com hash no nome) deixam de existir e o
+  // app aberto falha ao carregar uma tela. Recarrega a página uma única vez para
+  // buscar a versão nova (a sessão/login continua valendo, é só um reload).
+  const isChunkError = /dynamically imported module|Importing a module script failed|Loading chunk|error loading dynamically/i.test(
+    displayError.message,
+  );
+  useEffect(() => {
+    if (!isChunkError) return;
+    try {
+      const last = Number(sessionStorage.getItem("spp:chunk-reload") ?? 0);
+      if (Date.now() - last > 30_000) {
+        sessionStorage.setItem("spp:chunk-reload", String(Date.now()));
+        window.location.reload();
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [isChunkError]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
