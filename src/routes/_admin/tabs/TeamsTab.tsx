@@ -82,6 +82,7 @@ interface PlayerData {
   primary_position: string | null;
   avatar_url?: string | null;
   skills?: any;
+  gender?: string | null;
   phone_normalized?: string | null;
 }
 
@@ -174,6 +175,7 @@ export function TeamsTab() {
           primary_position: p.player_skills?.primary_position || null,
           avatar_url: (p.player?.avatar_path || p.player_avatar_path || null),
           skills: p.player_skills || null,
+          gender: (p.player as any)?.gender ?? null,
           phone_normalized: (p.player as any)?.phone_normalized
         }));
 
@@ -433,7 +435,8 @@ export function TeamsTab() {
       id: p.id,
       player_id: p.player_id,
       name: p.player_name,
-      skills: p.skills
+      skills: p.skills,
+      gender: p.gender ?? null,
     }));
 
     const result = distributePlayers(distPlayers, {

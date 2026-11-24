@@ -104,6 +104,17 @@ export function PlayersTab() {
     });
   };
 
+  const handleSetGender = async (p: any, gender: "F" | "M") => {
+    const next = p.gender === gender ? null : gender;
+    try {
+      await updateDetails({ data: { player_id: p.id, gender: next } });
+      toast.success(next === "F" ? "Marcada como feminino." : next === "M" ? "Marcado como masculino." : "Gênero removido.");
+      refetch();
+    } catch (e: any) {
+      toast.error(friendlyError(e.message));
+    }
+  };
+
   const removeAccents = (str: string) => {
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   };
@@ -138,6 +149,12 @@ export function PlayersTab() {
           </DropdownMenuItem>
           <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleUpdateName(p.id, p.name); }} className="text-sm cursor-pointer hover:bg-white/5">
             <Edit2 className="w-4 h-4 mr-2 text-brand-gold/70" /> Alterar nome
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={(e) => e.stopPropagation()} onSelect={() => handleSetGender(p, "F")} className="text-sm cursor-pointer hover:bg-white/5">
+            <Users className="w-4 h-4 mr-2 text-brand-gold/70" /> Gênero: Feminino{p.gender === "F" ? " ✓" : ""}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={(e) => e.stopPropagation()} onSelect={() => handleSetGender(p, "M")} className="text-sm cursor-pointer hover:bg-white/5">
+            <Users className="w-4 h-4 mr-2 text-brand-gold/70" /> Gênero: Masculino{p.gender === "M" ? " ✓" : ""}
           </DropdownMenuItem>
           <DropdownMenuItem 
             onClick={(e) => {
@@ -378,7 +395,7 @@ export function PlayersTab() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold text-brand-white truncate">{p.name}</p>
+                      <p className="text-sm font-bold text-brand-white truncate">{p.gender === "F" && <span className="mr-1.5 text-xs font-black text-pink-400" title="Feminino">♀</span>}{p.gender === "M" && <span className="mr-1.5 text-xs font-black text-sky-400" title="Masculino">♂</span>}{!p.gender && <span className="mr-1.5 text-xs font-bold text-zinc-500" title="Gênero não informado">?</span>}{p.name}</p>
                       <p className="text-xs text-brand-silver font-mono mt-0.5">{formatPhoneForDisplay(p.phone_normalized)}</p>
                       {(p.primary_position && p.primary_position !== "undefined" && p.primary_position !== "Sem posição definida") && (
                         <p className="text-[10px] text-brand-gold font-bold uppercase Oswald mt-1">
@@ -451,7 +468,7 @@ export function PlayersTab() {
                         </div>
                         <div className="flex flex-col">
                           <p className="text-sm font-bold text-slate-900 dark:text-brand-white max-w-[200px] truncate">
-                            {p.name}
+                            {p.gender === "F" && <span className="mr-1.5 text-xs font-black text-pink-400" title="Feminino">♀</span>}{p.gender === "M" && <span className="mr-1.5 text-xs font-black text-sky-400" title="Masculino">♂</span>}{!p.gender && <span className="mr-1.5 text-xs font-bold text-zinc-500" title="Gênero não informado">?</span>}{p.name}
                           </p>
                           {(p.primary_position && p.primary_position !== "undefined" && p.primary_position !== "Sem posição definida") && (
                             <span className="text-[10px] text-brand-gold font-bold uppercase Oswald mt-0.5">

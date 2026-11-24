@@ -116,6 +116,8 @@ export type DistributionPlayer = {
   player_id: string;
   name: string;
   skills: PlayerSkills | null;
+  /** "F" feminino, "M" masculino, null/undefined = não informado */
+  gender?: string | null;
 };
 
 export type TeamNumber = 1 | 2 | 3;
@@ -175,8 +177,8 @@ function metricsOf(
   weights: SkillWeights,
   neutral: number,
 ): number[] {
-  const metrics: number[] = new Array(SKILL_KEYS.length + 4).fill(0);
-  // metrics: [overall, ...skills, setters*3, tall*2, unrated*2]
+  const metrics: number[] = new Array(SKILL_KEYS.length + 5).fill(0);
+  // metrics: [overall, ...skills, setters*3, tall*2, unrated*2, mulheres]
   
   let unratedCount = 0;
   let tallCount = 0;
@@ -216,11 +218,13 @@ function metricsOf(
   metrics[SKILL_KEYS.length + 1] = setterCount * 3;
   metrics[SKILL_KEYS.length + 2] = tallCount * 2;
   metrics[SKILL_KEYS.length + 3] = unratedCount * 2;
+  // Prioridade máxima: mesma quantidade de mulheres em cada time.
+  metrics[SKILL_KEYS.length + 4] = players.filter((p) => p.gender === "F").length;
   
   return metrics;
 }
 
-const METRIC_WEIGHTS = [3, 1.5, 1.5, 1.2, 1, 1, 1, 1, 1, 2, 1, 1.5];
+const METRIC_WEIGHTS = [3, 1.5, 1.5, 1.2, 1, 1, 1, 1, 1, 2, 1, 1.5, 200];
 
 function cost(teams: DistributionPlayer[][], weights: SkillWeights, neutral: number): number {
   const mats = teams.map((t) => metricsOf(t, weights, neutral));
@@ -275,12 +279,19 @@ export function distributePlayers(
     const shuffled = [...free].sort(() => Math.random() - 0.5);
     shuffled.forEach((p, i) => teams[i % teamCount].push(p));
   } else {
-    const rated = free.filter((p) => isEvaluated(p.skills));
-    const unrated = free.filter((p) => !isEvaluated(p.skills));
-    rated.sort(
-      (a, b) =>
-        (overallLevel(b.skills, weights) ?? neutral) - (overallLevel(a.skills, weights) ?? neutral),
-    );
+    const byLevel = (a: DistributionPlayer, b: DistributionPlayer) =>
+      (overallLevel(b.skills, weights) ?? neutral) - (overallLevel(a.skills, weights) ?? neutral);
+    // Mulheres primeiro na serpentina, para que cada time receba a mesma quantidade.
+    const women = free.filter((p) => p.gender === "F");
+    const others = free.filter((p) => p.gender !== "F");
+    const rated = [
+      ...women.filter((p) => isEvaluated(p.skills)).sort(byLevel),
+      ...others.filter((p) => isEvaluated(p.skills)).sort(byLevel),
+    ];
+    const unrated = [
+      ...women.filter((p) => !isEvaluated(p.skills)),
+      ...others.filter((p) => !isEvaluated(p.skills)),
+    ];
 
     // Etapa 5 — serpentina
     let idx = 0;
@@ -347,7 +358,11 @@ export function distributePlayers(
       const si = teams[donor].findIndex(
         (p) => isSetter(p) && !lockedIds.has(p.id),
       );
-      const ri = teams[without].findIndex((p) => !isSetter(p) && !lockedIds.has(p.id));
+      const donorIsWoman = teams[donor][si].gender === "F";
+      // Troca só entre pessoas do mesmo grupo (mulher x mulher) para não desequilibrar o gênero.
+      const ri = teams[without].findIndex(
+        (p) => !isSetter(p) && !lockedIds.has(p.id) && (p.gender === "F") === donorIsWoman,
+      );
       if (si === -1 || ri === -1) break;
       const sp = teams[donor][si];
       const rp = teams[without][ri];
@@ -381,6 +396,18 @@ export function distributePlayers(
     warnings.push("Um dos times ficou com capacidade de ataque bem abaixo dos demais.");
   }
 
+  if (opts.mode === "balanced") {
+    const womenPerTeam = teams.map((t) => t.filter((p) => p.gender === "F").length);
+    const totalWomen = womenPerTeam.reduce((a, b) => a + b, 0);
+    if (totalWomen > 0 && Math.max(...womenPerTeam) - Math.min(...womenPerTeam) > 1) {
+      warnings.push("Não foi possível igualar a quantidade de mulheres por time (jogadores fixados).");
+    }
+    const noGender = players.filter((p) => !p.gender).length;
+    if (totalWomen > 0 && noGender > 0) {
+      warnings.push(`${noGender} jogador(es) sem gênero informado foram tratados como homens no equilíbrio.`);
+    }
+  }
+
   const assign: Record<string, TeamNumber> = {};
   teams.forEach((t, i) => {
     for (const p of t) assign[p.id] = (i + 1) as TeamNumber;
@@ -393,7 +420,9 @@ export function distributePlayers(
       const movable = players.filter((p) => !locked[p.id]);
       if (movable.length >= 2) {
         const a = movable[0];
-        const b = movable.find((p) => assign[p.id] !== assign[a.id]);
+        const b = movable.find(
+          (p) => assign[p.id] !== assign[a.id] && (p.gender === "F") === (a.gender === "F"),
+        );
         if (b) {
           const tmp = assign[a.id];
           assign[a.id] = assign[b.id];

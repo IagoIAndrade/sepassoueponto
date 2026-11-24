@@ -93,6 +93,14 @@ export async function notifyMainListFull(eventId: string | null | undefined) {
     const { starters: main, reserves, mainLimit } = classifyRegistrations(regs ?? [], event.main_limit);
     if (main.length < mainLimit) return;
 
+    // Lista fechada: sorteia os times (equilibrados, mesma quantidade de mulheres) e envia aos organizadores.
+    try {
+      const { autoDrawTeams } = await import("./auto-teams.server");
+      await autoDrawTeams(eventId, main as any, mainLimit);
+    } catch (drawError) {
+      console.error("[N8N] Falha ao sortear times automaticamente:", { event_id: eventId, error: String(drawError) });
+    }
+
     const name = (r: { player_name: string | null }) => (r.player_name || "Sem nome").trim();
     const snapshot: SnapshotEntry[] = main.map((r) => ({ id: r.id, nome: name(r) }));
     const signature = snapshot.map((s) => s.id).sort().join(",");

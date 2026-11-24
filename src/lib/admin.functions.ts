@@ -452,14 +452,14 @@ export const get_admin_event = createServerFn({ method: "POST" })
       
       const { data: players, error: pError } = await sb
         .from("players")
-        .select("id, name, phone_normalized, avatar_path")
+        .select("id, name, gender, phone_normalized, avatar_path")
         .in("id", playerIds);
       
       if (pError) console.error("[ADMIN LIST] Erro ao buscar dados dos jogadores:", pError);
       
       const { data: skills, error: skError } = await sb
         .from("player_skills")
-        .select("player_id, primary_position")
+        .select("*")
         .in("player_id", playerIds);
       
       if (skError) console.error("[ADMIN LIST] Erro ao buscar skills dos jogadores:", skError);
@@ -1004,7 +1004,7 @@ export const admin_list_players = createServerFn({ method: "POST" })
 
     let query = sb
       .from("players")
-      .select("id, name, phone_normalized, created_at, active, disabled_at, disabled_reason, avatar_path, avatar_status, avatar_uploaded_at, player_groups(group_id, is_organizer, organizer_order)", {
+      .select("id, name, gender, phone_normalized, created_at, active, disabled_at, disabled_reason, avatar_path, avatar_status, avatar_uploaded_at, player_groups(group_id, is_organizer, organizer_order)", {
         count: "exact",
       });
 

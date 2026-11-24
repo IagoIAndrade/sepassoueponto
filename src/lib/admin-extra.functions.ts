@@ -53,12 +53,14 @@ export const admin_update_player_details = createServerFn({ method: "POST" })
     name: z.string().trim().min(2).optional(),
     phone: z.string().trim().optional(),
     is_admin: z.boolean().optional(),
+    gender: z.enum(["F", "M"]).nullable().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
     const sb = await admin();
     const update: any = {};
     if (data.name) update.name = data.name;
+    if (data.gender !== undefined) update.gender = data.gender;
     if (data.phone) {
         const { normalizePhone } = await import("./utils");
         update.phone_normalized = normalizePhone(data.phone);

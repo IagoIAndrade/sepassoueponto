@@ -1217,6 +1217,7 @@ export type Database = {
           disabled_by: string | null
           disabled_reason: string | null
           first_name: string | null
+          gender: string | null
           has_global_priority: boolean
           id: string
           is_guest: boolean | null
@@ -1241,6 +1242,7 @@ export type Database = {
           disabled_by?: string | null
           disabled_reason?: string | null
           first_name?: string | null
+          gender?: string | null
           has_global_priority?: boolean
           id?: string
           is_guest?: boolean | null
