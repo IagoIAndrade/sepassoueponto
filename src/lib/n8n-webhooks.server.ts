@@ -225,6 +225,10 @@ export async function notifyWithdrawal(registrationId: string | null | undefined
 
     const late = withdrawal.deadline_status === "late";
 
+    // Reserva não é titular: saída fora do prazo não interfere no jogo nem é penalizada,
+    // então não há aviso no WhatsApp.
+    if (late && withdrawal.list_type_snapshot !== "main") return;
+
     // Penalidade registrada para esta saída (só existe quando foi fora do prazo).
     const { data: incident } = late
       ? await supabaseAdmin
